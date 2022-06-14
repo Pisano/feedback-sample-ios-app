@@ -1,0 +1,14 @@
+/* 
+  Localizable.strings
+  feedback
+
+  Created by Abdulkerim Şahin on 11.05.2022.
+  
+*/
+"app_name" = "Pisano Geribildirim";
+"get_feedback" = "Geri Bildirim Ver";
+"this_field_is_required" = "Bu alan zorunludur.";
+"email_address" = "E-Posta Adresi";
+"phone_number" = "Telefon Numarası";
+"name" = "Ad Soyad";
+"invalid_input" = "Geçersiz bilgi";

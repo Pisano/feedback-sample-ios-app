@@ -1,0 +1,14 @@
+/* 
+  Localizable.strings
+  feedback
+
+  Created by Abdulkerim Şahin on 11.05.2022.
+  
+*/
+"app_name" = "Pisano Feedback";
+"get_feedback" = "Get Feedback";
+"this_field_is_required" = "This field is required.";
+"email_address" = "Email Address";
+"phone_number" = "Phone Number";
+"name" = "Name Surname";
+"invalid_input" = "Invalid Data";
