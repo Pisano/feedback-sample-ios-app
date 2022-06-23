@@ -6,7 +6,7 @@ It is a sample iOS application using the Feedback SDK.
 
 You can check the latest releases [here](https://github.com/Pisano/pisano-ios).
 
-### Supported IOS Versions
+### Supported iOS Versions
 Pisano iOS SDK supports iOS 10+ and Xcode 12 is required to build Pisano iOS SDK.
 
 ## Installation Methods
@@ -17,7 +17,8 @@ https://pisano-engineering.s3-eu-west-1.amazonaws.com/Feedback-CC.xcframework.zi
 
 ### CocoaPods
 
-Alternatively, you can install Pisano IOS SDK via CocoaPods
+Alternatively, you can install Pisano i
+OS SDK via CocoaPods
 Cocoapods 1.10 or above is required to install Pisano. Add the Pisano pod into your Podfile and run pod install.
 
 ```yaml
