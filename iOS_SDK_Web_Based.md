@@ -17,7 +17,7 @@ Cocoapods 1.10 or above is required to install Pisano. Add the Pisano pod into y
 
 ```yaml
 target :YourTargetName do 
-  pod 'Pisano' '~> 0.2.0'
+  pod 'Pisano', '~> 0.2.0'
 end
 ```
 
