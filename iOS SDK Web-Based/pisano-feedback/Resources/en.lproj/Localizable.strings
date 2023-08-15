@@ -1,0 +1,40 @@
+/* 
+  Localizable.strings
+  feedback
+
+  Created by Abdulkerim Şahin on 11.05.2022.
+  
+*/
+"app_name" = "Pisano Feedback";
+"get_feedback" = "Get Feedback";
+"this_field_is_required" = "This field is required.";
+"email_address" = "Email Address";
+"phone_number" = "Phone Number";
+"external_id" = "External Id";
+"name" = "Name Surname";
+"invalid_input" = "Invalid Data";
+"create_flow" = "Create Flow";
+"back" = "Back";
+"action_status" = "Action Status:";
+"submitted" = "Submitted:";
+"clicked" = "Clicked:";
+"share" = "Share";
+"start" = "Start";
+"done" = "Done";
+"owner" = "Owner";
+"participant" = "Participant";
+"new_flow" = "New Flow";
+"getting_started" = "Getting Started";
+"flows" = "Flows";
+"feedback_closed" = "Closed";
+"feedback_sendFeedback" = "Send Feedback";
+"feedback_open" = "Opened";
+"feedback_displayOnce" = "Survey won't be shown due to the customer saw it before.";
+"feedback_multipleFeedback" = "Survey won't be shown due to customer already submitted a feedback in a given time period.";
+"feedback_quotaLimit" = "The survey won't be shown due to the quota limit has been exceeded.";
+"feedback_other" = "Other";
+"clear" = "Clear";
+"custom_title" = "Title";
+"default" = "Default";
+"bottom_sheet" = "Bottom Sheet";
+"font" = "Font";
