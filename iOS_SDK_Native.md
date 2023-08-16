@@ -68,8 +68,8 @@ Pisano *pisano = [[Pisano alloc] initWithAppId:NSString
 [pisano showWithFlowId:(NSString * _Nullable)
         customer:(PisanoCustomer * _Nullable),
         payload:(NSDictionary<NSString *, NSString *> * _Nullable),
-        callback:^(enum FeedbackCallback callback) {
-        
+        feedbackCallback:^(enum FeedbackCallback callback) {
+      NSLog(@"%@", [FeedbackCallbackHelper descriptionFrom:callback]);
 }];
 ```
 | Init Parameter Name | Type  | Description  |
