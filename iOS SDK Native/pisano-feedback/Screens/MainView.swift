@@ -47,15 +47,9 @@ struct MainView: View {
             BackgroundView()
         )
         .onAppear {
-            FirebaseManager.shared.getConfig { config in
-                if let config = config {
-                    AppManager.shared.setPisanoFeedback(config)
-                }
-                
-                withAnimation {
-                    viewModel.isLoaded = true
-                    viewModel.state = .welcome
-                }
+            withAnimation {
+                viewModel.isLoaded = true
+                viewModel.state = .welcome
             }
         }
     }

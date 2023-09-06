@@ -8,7 +8,7 @@ Pisano iOS SDK supports iOS 11+ and Xcode 13 is required to build Pisano iOS SDK
 ### Manual Installation
 You can install Pisano iOS SDK in your mobile application by include xcframework library provided by Pisano. Please visit the following link to download the xcframework file.
 
-https://github.com/Pisano/pisano-ios
+https://github.com/Pisano/pisano-ios/tree/master/iOS%20SDK%20Native
 
 ### CocoaPods
 
@@ -49,7 +49,8 @@ let pisano = Pisano(appId: String,
                     accessKey: String, 
                     apiUrl: String)
                     
-pisano.show(flowId: String?, 
+pisano.show(viewMode: PSNViewMode,
+            flowId: String?, 
             customer: PisanoFeedback.PisanoCustomer?, 
             payload: [String : String]?) { callback in
     
@@ -65,9 +66,10 @@ Pisano *pisano = [[Pisano alloc] initWithAppId:NSString
                                      accessKey:NSString
                                         apiUrl:NSString];
                                         
-[pisano showWithFlowId:(NSString * _Nullable)
-        customer:(PisanoCustomer * _Nullable),
-        payload:(NSDictionary<NSString *, NSString *> * _Nullable),
+[pisano showWithViewMode:PSNViewModeDefault
+                  flowId:(NSString * _Nullable)
+                customer:(PisanoCustomer * _Nullable)
+                 payload:(NSDictionary<NSString *, NSString *> * _Nullable)
         feedbackCallback:^(enum FeedbackCallback callback) {
       NSLog(@"%@", [FeedbackCallbackHelper descriptionFrom:callback]);
 }];
@@ -80,6 +82,7 @@ Pisano *pisano = [[Pisano alloc] initWithAppId:NSString
 
 | Show Parameter  Name | Type  | Description  |
 | ------- | --- | --- |
+| viewMode | PSNViewMode | View Mode Enum to set presentation style (Default - BottomSheet)
 | flowId | String | The ID of related flow. Can be obtained from Pisano Dashboard. Can be sent as empty string "" for default flow |
 | customer | PisanoCustomer | PisanoCustomer Object |
 | payload | Dictionary  | Question and related answer in an array (mostly uses for pre-loaded responses to take transactional data(s))  |

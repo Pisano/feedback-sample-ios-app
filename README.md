@@ -2,8 +2,6 @@
 
 It is a sample iOS application using the Feedback SDK.
 
-You can check the latest releases [here](https://github.com/Pisano/pisano-ios).
-
 ## How to use Feedback SDK
 
 ### iOS SDK Web-Based

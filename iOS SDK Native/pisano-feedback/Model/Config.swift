@@ -8,9 +8,9 @@
 import Foundation
 
 struct Config: Codable {
+    let appId: String
     let accessKey: String
     let apiUrl: String
-    let appId: String
+    let feedbackUrl: String = ""
     var eventUrl: String = ""
-    let feedbackUrl: String
 }

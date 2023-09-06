@@ -7,17 +7,6 @@
 
 import SwiftUI
 
-class AppManager {
-    private init() {}
-    
-    static let shared = AppManager()
-    var config: Config?
-    
-    func setPisanoFeedback(_ config: Config) {
-        self.config = config
-    }
-}
-
 indirect enum AppState: Equatable {
     static func == (lhs: AppState, rhs: AppState) -> Bool {
         return lhs.id == rhs.id

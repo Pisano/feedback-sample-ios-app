@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import FirebaseCore
 
 @main
 struct feedbackApp {
@@ -37,7 +36,6 @@ struct AppView: View {
 class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         UITableView.appearance().backgroundColor = .clear
-        FirebaseApp.configure()
         return true
     }
 

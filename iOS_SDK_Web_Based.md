@@ -8,7 +8,7 @@ Pisano iOS SDK supports iOS 10+ and min Xcode 12 is required to build Pisano iOS
 ### Manual Installation
 You can install Pisano iOS SDK in your mobile application by include xcframework library provided by Pisano. Please visit the following link to download the xcframework file.
 
-https://github.com/Pisano/pisano-ios
+https://github.com/Pisano/pisano-ios/tree/master/iOS%20SDK%20Web-Based
 
 ### CocoaPods
 
@@ -45,10 +45,12 @@ After adding the dependencies and permissions, you are now able to call the meth
 ```yaml
 import Feedback
 
-Pisano.boot(appId: "", 
-            accessKey: "",
-            apiUrl: "",
-            feedbackUrl: "")
+Pisano.boot(appId: String, 
+            accessKey: String,
+            apiUrl: String,
+            feedbackUrl: String) { status in
+            print(status.description)
+  }
 ```
 
 ### Objective-C
@@ -56,11 +58,14 @@ Pisano.boot(appId: "",
 ```yaml
 #import <Feedback/Feedback-Swift.h>
 
-[Pisano bootWithAppId:@""
-                accessKey:@""
-                   apiUrl:@""
-              feedbackUrl:@""
-                 eventUrl: nil];
+[Pisano bootWithAppId:NSString
+                accessKey:NSString
+                   apiUrl:NSString
+              feedbackUrl:NSString
+                 eventUrl:(NSString * _Nullable)
+               completion:^(enum CloseStatus status) {
+        
+    }];
 ```
 
 | Parameter Name | Type  | Description  |
@@ -69,6 +74,7 @@ Pisano.boot(appId: "",
 | accessKey  | String | The access key can be obtained from Pisano Dashboard |
 | apiUrl  | String | The URL of API that will be accessed |
 | feedbackUrl  | String | Base URL for survey |
+| completion | Closure | CloseStatus Enum |
 
 ## Show Method
 
@@ -129,15 +135,16 @@ Pisano.show(mode: ViewMode.default
 
 | Enum  Name | Description  |
 | ------- | --- | 
-| CloseStatusClosed | Closed Survey  |
-| CloseStatusOpened | Opened Survey | 
-| CloseStatusSendFeedback  | Send Feedback   |
-| CloseStatusDisplayOnce  | Survey won't be shown due to the customer saw it before.  |
-| CloseStatusPreventMultipleFeedback  | Survey won't be shown due to customer already submitted a feedback in a given time period.  |
-| CloseStatusChannelQuotaExceeded | Survey won’t be shown due to the channel quota limit has been exceeded. |
-| CloseStatusOutside | Others |
+| Closed | Closed Survey  |
+| Opened | Opened Survey | 
+| SendFeedback  | Send Feedback   |
+| DisplayOnce  | Survey won't be shown due to the customer saw it before.  |
+| PreventMultipleFeedback  | Survey won't be shown due to customer already submitted a feedback in a given time period.  |
+| ChannelQuotaExceeded | Survey won’t be shown due to the channel quota limit has been exceeded. |
+| Outside | Others |
+| InitFailed | The SDK init is failed |
 
-## Clear Method (0.1.1)
+## Clear Method
 Clear all saved data related to feedback flows.
 
 ### Swift

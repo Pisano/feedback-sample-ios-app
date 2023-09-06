@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Feedback
 
 struct MainView: View {
     @ObservedObject var viewModel = MainViewModel()
@@ -47,15 +48,13 @@ struct MainView: View {
             BackgroundView()
         )
         .onAppear {
-            FirebaseManager.shared.getConfig { config in
-                if let config = config {
-                    AppManager.shared.setPisanoFeedback(config)
-                }
-                
-                withAnimation {
-                    viewModel.isLoaded = true
-                    viewModel.state = .welcome
-                }
+            Pisano.boot(appId: "", accessKey: "", apiUrl: "", feedbackUrl: "") { status in
+                print(status.description)
+            }
+            
+            withAnimation {
+                viewModel.isLoaded = true
+                viewModel.state = .welcome
             }
         }
     }
