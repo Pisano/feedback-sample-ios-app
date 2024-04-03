@@ -23,7 +23,7 @@ end
 
 ### Swift Package Manager
 Last method is Swift Package Manager.
-Add https://github.com/Pisano/pisano-ios as a Swift Package Repository in Xcode and follow the instructions and set Up To Next Major Version as "**0.2.0**" to add Pisano as a Swift Package.
+Add https://github.com/Pisano/pisano-ios as a Swift Package Repository in Xcode and follow the instructions and set Up To Next Major Version as "**0.2.4**" to add Pisano as a Swift Package.
 
 ## Permissions
 
@@ -143,6 +143,7 @@ Pisano.show(mode: ViewMode.default
 | ChannelQuotaExceeded | Survey won’t be shown due to the channel quota limit has been exceeded. |
 | Outside | Others |
 | InitFailed | The SDK init is failed |
+| InitSuccess | The SDK init is successful |
 
 ## Clear Method
 Clear all saved data related to feedback flows.
