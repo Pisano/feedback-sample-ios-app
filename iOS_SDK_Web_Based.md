@@ -1,7 +1,7 @@
 ## How to use Feedback SDK
 
 ### Supported iOS Versions
-Pisano iOS SDK supports iOS 10+ and min Xcode 12 is required to build Pisano iOS SDK.
+Pisano iOS SDK supports iOS 12+ and min Xcode 12 is required to build Pisano iOS SDK.
 
 ## Installation Methods
 
