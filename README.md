@@ -9,6 +9,7 @@ Pisano Feedback iOS SDK is an SDK that allows you to easily integrate user feedb
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [API Reference](#api-reference)
+  - [CloseStatus](#closestatus)
 - [Usage Examples](#usage-examples)
 - [Configuration](#configuration)
 - [Frequently Asked Questions](#frequently-asked-questions)
@@ -20,7 +21,6 @@ Pisano Feedback iOS SDK is an SDK that allows you to easily integrate user feedb
 - ✅ **Native iOS Integration**: Fully native iOS SDK
 - ✅ **Objective-C Compatibility**: Can be used in both Swift and Objective-C projects
 - ✅ **Flexible View Modes**: Full-screen and bottom sheet view options
-- ✅ **Event Tracking**: Ability to track user activities
 - ✅ **Health Check**: Ability to check SDK status
 - ✅ **User Information Support**: Ability to send user data
 - ✅ **Multi-Language Support**: Ability to display surveys in different languages
@@ -77,8 +77,7 @@ func application(_ application: UIApplication,
     Pisano.boot(appId: "YOUR_APP_ID",
                 accessKey: "YOUR_ACCESS_KEY",
                 apiUrl: "https://api.pisano.co",
-                feedbackUrl: "https://web.pisano.co/web_feedback",
-                eventUrl: "https://track.pisano.co/track") { status in
+                feedbackUrl: "https://web.pisano.co/web_feedback") { status in
         print("Boot status: \(status.description)")
     }
     
@@ -102,7 +101,6 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
                accessKey:@"YOUR_ACCESS_KEY"
                   apiUrl:@"https://api.pisano.co"
              feedbackUrl:@"https://web.pisano.co/web_feedback"
-                eventUrl:@"https://track.pisano.co/track"
               completion:^(enum CloseStatus status) {
         NSLog(@"Boot status: %@", @(status));
     }];
@@ -142,6 +140,20 @@ Pisano.show(mode: .bottomSheet,
 
 ## 📚 API Reference
 
+### CloseStatus
+
+The `CloseStatus` enum is returned by various SDK methods to indicate the result of an operation.
+
+**CloseStatus Values:**
+- `.initSucces`: SDK initialized successfully
+- `.initFailed`: SDK initialization failed
+- `.closed`: User clicked the close button
+- `.sendFeedback`: Feedback was sent
+- `.outside`: Closed by clicking outside
+- `.displayOnce`: Already shown before
+- `.surveyPassive`: Survey is in passive state
+- `.healthCheckFailed`: Health check failed
+
 ### `Pisano.boot()`
 
 Initializes the SDK. This method must be called either at application startup (usually in `AppDelegate`) or before calling the `show()` method.
@@ -151,10 +163,9 @@ Initializes the SDK. This method must be called either at application startup (u
 - `accessKey: String` - Your API access key (required)
 - `apiUrl: String` - API endpoint URL (required)
 - `feedbackUrl: String` - Feedback widget URL (required)
-- `eventUrl: String?` - Event tracking URL (optional)
 - `completion: ((CloseStatus) -> Void)?` - Initialization result callback (optional)
-  - `.initSucces`: SDK initialized successfully
-  - `.initFailed`: SDK initialization failed
+  
+  Returns `.initSucces` or `.initFailed`. See [CloseStatus](#closestatus) for all possible values.
 
 **Example:**
 
@@ -162,8 +173,7 @@ Initializes the SDK. This method must be called either at application startup (u
 Pisano.boot(appId: "app-123",
            accessKey: "key-456",
            apiUrl: "https://api.pisano.co",
-           feedbackUrl: "https://web.pisano.co/web_feedback",
-           eventUrl: "https://track.pisano.co/track") { status in
+           feedbackUrl: "https://web.pisano.co/web_feedback") { status in
     switch status {
     case .initSucces:
         print("SDK initialized successfully")
@@ -189,6 +199,8 @@ Displays the feedback widget.
 - `customer: [String: Any]?` - User information (optional)
 - `payload: [String: String]?` - Extra data (optional)
 - `completion: (CloseStatus) -> Void` - Widget close callback
+  
+  See [CloseStatus](#closestatus) for all possible return values.
 
 **User Information Keys:**
 - `name`: User name
@@ -196,14 +208,6 @@ Displays the feedback widget.
 - `phoneNumber`: Phone number
 - `externalId`: External system ID (CRM, etc.)
 - `customAttrs`: Custom attributes (Dictionary)
-
-**CloseStatus Values:**
-- `.closed`: User clicked the close button
-- `.sendFeedback`: Feedback was sent
-- `.outside`: Closed by clicking outside
-- `.displayOnce`: Already shown before
-- `.surveyPassive`: Survey is in passive state
-- `.healthCheckFailed`: Health check failed
 
 **Example:**
 
@@ -232,35 +236,6 @@ Pisano.show(mode: .bottomSheet,
                    break
                }
            })
-```
-
-### `Pisano.track()`
-
-Tracks user activities and automatically triggers the feedback widget if needed.
-
-**Parameters:**
-- `event: String` - Event name (required)
-- `payload: [String: String]?` - Event data (optional)
-- `customer: [String: Any]?` - User information (optional)
-- `language: String?` - Language code (optional)
-- `completion: (CloseStatus) -> Void` - Result callback
-
-**Example:**
-
-```swift
-Pisano.track(event: "purchase_completed",
-            payload: [
-                "product_id": "PROD-123",
-                "price": "99.99",
-                "currency": "USD"
-            ],
-            customer: [
-                "externalId": "USER-456",
-                "email": "user@example.com"
-            ],
-            completion: { status in
-                print("Track completed: \(status.description)")
-            })
 ```
 
 ### `Pisano.healthCheck()`
@@ -323,12 +298,6 @@ class ViewController: UIViewController {
                        print("Feedback status: \(status.description)")
                    })
     }
-    
-    @IBAction func trackEvent(_ sender: Any) {
-        Pisano.track(event: "button_clicked",
-                    payload: ["button_name": "feedback_button"],
-                    completion: { _ in })
-    }
 }
 ```
 
@@ -348,8 +317,7 @@ struct MyApp: App {
         Pisano.boot(appId: "YOUR_APP_ID",
                    accessKey: "YOUR_ACCESS_KEY",
                    apiUrl: "https://api.pisano.co",
-                   feedbackUrl: "https://web.pisano.co/web_feedback",
-                   eventUrl: "")
+                   feedbackUrl: "https://web.pisano.co/web_feedback")
     }
     
     var body: some Scene {
@@ -396,16 +364,6 @@ struct ContentView: View {
                  payload:nil
               completion:^(enum CloseStatus status) {
         NSLog(@"Feedback status: %@", @(status));
-    }];
-}
-
-- (IBAction)trackEvent:(id)sender {
-    [Pisano trackWithEvent:@"button_clicked"
-                    payload:@{@"button_name": @"feedback_button"}
-                   customer:nil
-                   language:nil
-                 completion:^(enum CloseStatus status) {
-        NSLog(@"Track completed");
     }];
 }
 
