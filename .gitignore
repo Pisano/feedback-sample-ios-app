@@ -2,6 +2,15 @@
 #
 # gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
 
+## Cursor / VS Code / IDE
+.cursor/
+**/.cursor/**
+.vscode/
+.idea/
+
+## macOS
+.DS_Store
+
 ## User settings
 xcuserdata/
 
@@ -11,6 +20,7 @@ GoogleService-Info.plist
 ## Test Outputs
 test_output/
 xctest/
+*.xcresult
 ## compatibility with Xcode 8 and earlier (ignoring not required starting Xcode 9)
 *.xcscmblueprint
 *.xccheckout

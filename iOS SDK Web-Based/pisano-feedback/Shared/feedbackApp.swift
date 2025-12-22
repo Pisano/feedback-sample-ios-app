@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PisanoFeedback
 
 @main
 struct feedbackApp {
@@ -39,6 +40,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 #if DEBUG
 //        Pisano.debugMode(true)
 #endif
+
+        if PisanoSDKConfig.isValid {
+            Pisano.boot(appId: PisanoSDKConfig.appId,
+                        accessKey: PisanoSDKConfig.accessKey,
+                        apiUrl: PisanoSDKConfig.apiUrl,
+                        feedbackUrl: PisanoSDKConfig.feedbackUrl,
+                        eventUrl: PisanoSDKConfig.eventUrl.isEmpty ? nil : PisanoSDKConfig.eventUrl) { status in
+                print(status.description)
+            }
+        } else {
+            print("Pisano SDK config is missing. Please set PISANO_APP_ID / PISANO_ACCESS_KEY / PISANO_API_URL / PISANO_FEEDBACK_URL in Info.plist.")
+        }
         return true
     }
 

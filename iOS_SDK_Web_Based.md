@@ -8,7 +8,7 @@ Pisano iOS SDK supports iOS 12+ and min Xcode 12 is required to build Pisano iOS
 ### Manual Installation
 You can install Pisano iOS SDK in your mobile application by include xcframework library provided by Pisano. Please visit the following link to download the xcframework file.
 
-https://github.com/Pisano/pisano-ios/tree/master/iOS%20SDK%20Web-Based
+`https://github.com/Pisano/pisano-ios/tree/master/iOS%20SDK%20Web-Based`
 
 ### CocoaPods
 
@@ -17,13 +17,16 @@ Cocoapods 1.10 or above is required to install Pisano. Add the Pisano pod into y
 
 ```yaml
 target :YourTargetName do 
-  pod 'Pisano', '~> 0.2.4'
+  pod 'Pisano', '~> 1.0.16'
 end
 ```
 
 ### Swift Package Manager
 Last method is Swift Package Manager.
-Add https://github.com/Pisano/pisano-ios as a Swift Package Repository in Xcode and follow the instructions and set Up To Next Major Version as "**0.2.4**" to add Pisano as a Swift Package.
+
+- Add `https://github.com/Pisano/pisano-ios.git` as a Swift Package in Xcode (**File → Add Package Dependencies...**)
+- Set version rule to **Up to Next Major** and enter **1.0.16**
+- Add the product **`PisanoFeedback`** to your app target
 
 ## Permissions
 
@@ -43,7 +46,7 @@ After adding the dependencies and permissions, you are now able to call the meth
 ### Swift
 
 ```yaml
-import Feedback
+import PisanoFeedback
 
 Pisano.boot(appId: String, 
             accessKey: String,
@@ -56,7 +59,7 @@ Pisano.boot(appId: String,
 ### Objective-C
 
 ```yaml
-#import <Feedback/Feedback-Swift.h>
+#import <PisanoFeedback/PisanoFeedback-Swift.h>
 
 [Pisano bootWithAppId:NSString
                 accessKey:NSString
@@ -81,7 +84,7 @@ Pisano.boot(appId: String,
 ### Swift
 
 ```yaml
-import Feedback
+import PisanoFeedback
 
 Pisano.show(mode: ViewMode.default
             title: nil,
@@ -101,7 +104,7 @@ Pisano.show(mode: ViewMode.default
 ### Objective-C
 
 ```yaml
-#import <Feedback/Feedback-Swift.h>
+#import <PisanoFeedback/PisanoFeedback-Swift.h>
 
 [Pisano showWithMode:ViewModeDefault
                    title:NULL

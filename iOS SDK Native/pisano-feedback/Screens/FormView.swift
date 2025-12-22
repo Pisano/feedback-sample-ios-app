@@ -38,7 +38,7 @@ struct FormView: View {
                                     text: $viewModel.externalId)
                 }
                 
-                Text(viewModel.feedbackCallback.callbackDescription())
+                Text(viewModel.closeStatus.description)
                 
                 AppButton(title: .getFeedback) {
                     viewModel.feedback()

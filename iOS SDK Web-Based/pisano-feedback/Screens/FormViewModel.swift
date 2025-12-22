@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import Feedback
+import PisanoFeedback
 
 class FormViewModel: ObservableObject {
     @Published var fullname = ""
@@ -14,7 +14,7 @@ class FormViewModel: ObservableObject {
     @Published var phone = ""
     @Published var externalId = ""
     @Published var emailValidation = true
-    @Published var sdkCallback: Feedback.CloseStatus = .none
+    @Published var sdkCallback: CloseStatus = .none
     @Published var customTitle: String = ""
     @Published var selectedColor: Color?
     @Published var selectedMode: ViewMode = .default
@@ -23,7 +23,7 @@ class FormViewModel: ObservableObject {
     
     var colors: [Color] = [.blue, .green, .yellow, .darkGray, .lightGray, .black, .gray, .orange, .pink, .purple, .red]
     var fonts: [UIFont] = [.preferredFont(forTextStyle: .largeTitle), .preferredFont(forTextStyle: .title1), .preferredFont(forTextStyle: .title2), .preferredFont(forTextStyle: .title3), .preferredFont(forTextStyle: .headline), .preferredFont(forTextStyle: .subheadline), .preferredFont(forTextStyle: .body), .preferredFont(forTextStyle: .callout), .preferredFont(forTextStyle: .footnote), .preferredFont(forTextStyle: .caption1), .preferredFont(forTextStyle: .caption2)]
-    var modes: [ViewMode] = [.default, .bottomSheeet]
+    var modes: [ViewMode] = [.default, .bottomSheet]
     
     func feedback() {
         emailValidation = email.isEmpty ? true : emailValidation
@@ -60,7 +60,7 @@ extension ViewMode {
     var title: LocalizedStringKey {
         switch self {
         case .default: return .`default`
-        case .bottomSheeet: return .bottomSheet
+        case .bottomSheet: return .bottomSheet
         default: return ""
         }
     }

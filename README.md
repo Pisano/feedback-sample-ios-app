@@ -43,7 +43,7 @@ platform :ios, '11.0'
 use_frameworks!
 
 target 'YourApp' do
-  pod 'Pisano', '~> [VERSION]'
+  pod 'Pisano', '~> 1.0.16'
 end
 ```
 
@@ -55,6 +55,40 @@ pod install
 
 3. Open the `.xcworkspace` file with Xcode.
 
+### Installation with Swift Package Manager (recommended)
+
+1. In Xcode: **File → Add Package Dependencies...**
+2. Enter package URL: `https://github.com/Pisano/pisano-ios.git`
+3. Select version rule **Up to Next Major** and set it to **1.0.16**
+4. Add the product **`PisanoFeedback`** to your app target
+
+> Note: This repository contains sample iOS apps and is already configured with SPM. There is no `Podfile` in this repo unless you add one.
+
+## 🧩 Native vs Web-Based usage
+
+This repo includes two sample apps:
+
+- **Web-Based sample**: `iOS SDK Web-Based/pisano-feedback.xcodeproj` (imports `PisanoFeedback`)
+- **Native sample**: `iOS SDK Native/pisano-feedback.xcodeproj` (imports `PisanoFeedback`)
+
+> Note: In SDK **1.0.16**, both samples use the same module/product (`PisanoFeedback`). The “Web-Based vs Native” naming here is about the **usage style** (web widget URL + boot/show flow vs native-focused sample UI), not different packages.
+
+### Web-Based (Feedback) — boot once, then show
+
+1. Call `Pisano.boot(...)` once at app startup (e.g. `AppDelegate`).
+2. Later, call `Pisano.show(...)`.
+
+In this repo’s Web-Based sample, credentials are read from `Info.plist` keys:
+`PISANO_APP_ID`, `PISANO_ACCESS_KEY`, `PISANO_API_URL`, `PISANO_FEEDBACK_URL`.
+
+### Native (PisanoFeedback) — create instance, then show
+
+1. Create a `Pisano(appId:accessKey:apiUrl:)` instance when you need it.
+2. Call `pisano.show(...)`.
+
+In this repo’s Native sample, credentials are read from `Info.plist` keys:
+`PISANO_APP_ID`, `PISANO_ACCESS_KEY`, `PISANO_API_URL`.
+
 ## 🚀 Quick Start
 
 ### 1. Initializing the SDK
@@ -64,7 +98,7 @@ You must initialize the SDK before using it. The SDK initialization should be do
 #### Swift
 
 ```swift
-import Feedback
+import PisanoFeedback
 
 // In AppDelegate
 func application(_ application: UIApplication, 
@@ -88,7 +122,7 @@ func application(_ application: UIApplication,
 #### Objective-C
 
 ```objc
-#import <Feedback/Feedback-Swift.h>
+#import <PisanoFeedback/PisanoFeedback-Swift.h>
 
 - (BOOL)application:(UIApplication *)application 
 didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
@@ -147,12 +181,18 @@ The `CloseStatus` enum is returned by various SDK methods to indicate the result
 **CloseStatus Values:**
 - `.initSucces`: SDK initialized successfully
 - `.initFailed`: SDK initialization failed
-- `.closed`: User clicked the close button
+- `.closed`: Widget closed
+- `.opened`: Widget opened
 - `.sendFeedback`: Feedback was sent
 - `.outside`: Closed by clicking outside
 - `.displayOnce`: Already shown before
+- `.preventMultipleFeedback`: Multiple feedback prevention triggered
+- `.channelQuotaExceeded`: Channel quota exceeded
 - `.surveyPassive`: Survey is in passive state
+- `.healthCheckSuccessful`: Health check passed
 - `.healthCheckFailed`: Health check failed
+
+> Note: Available cases can vary by SDK version. Prefer using `status.description` for logging/UI.
 
 ### `Pisano.boot()`
 
@@ -163,6 +203,7 @@ Initializes the SDK. This method must be called either at application startup (u
 - `accessKey: String` - Your API access key (required)
 - `apiUrl: String` - API endpoint URL (required)
 - `feedbackUrl: String` - Feedback widget URL (required)
+- `eventUrl: String?` - Event tracking URL (optional)
 - `completion: ((CloseStatus) -> Void)?` - Initialization result callback (optional)
   
   Returns `.initSucces` or `.initFailed`. See [CloseStatus](#closestatus) for all possible values.
@@ -173,7 +214,8 @@ Initializes the SDK. This method must be called either at application startup (u
 Pisano.boot(appId: "app-123",
            accessKey: "key-456",
            apiUrl: "https://api.pisano.co",
-           feedbackUrl: "https://web.pisano.co/web_feedback") { status in
+           feedbackUrl: "https://web.pisano.co/web_feedback",
+           eventUrl: "https://event.pisano.co") { status in
     switch status {
     case .initSucces:
         print("SDK initialized successfully")
@@ -274,6 +316,36 @@ Pisano.debugMode(false)
 #endif
 ```
 
+### `Pisano.track()`
+
+Tracks an event (if supported by your SDK version).
+
+**Parameters:**
+- `event: String` - Event name (required)
+- `payload: [String: String]?` - Event payload data (optional)
+- `customer: [String: Any]?` - User information (optional)
+- `language: String?` - Language code (optional)
+- `completion: (CloseStatus) -> Void` - Completion callback
+
+**Example:**
+
+```swift
+Pisano.track(event: "purchase_completed",
+            payload: ["order_id": "12345", "amount": "99.99"],
+            customer: ["email": "john@example.com"],
+            language: "en") { status in
+    print("Event tracked: \(status.description)")
+}
+```
+
+### `Pisano.clear()`
+
+Clears saved/session data (if needed by your flow).
+
+```swift
+Pisano.clear()
+```
+
 ## 💡 Usage Examples
 
 ### Swift Usage
@@ -282,7 +354,7 @@ Pisano.debugMode(false)
 
 ```swift
 import UIKit
-import Feedback
+import PisanoFeedback
 
 class ViewController: UIViewController {
     
@@ -305,7 +377,7 @@ class ViewController: UIViewController {
 
 ```swift
 import SwiftUI
-import Feedback
+import PisanoFeedback
 
 @main
 struct MyApp: App {
@@ -344,7 +416,7 @@ struct ContentView: View {
 ### Objective-C Usage
 
 ```objc
-#import <Feedback/Feedback-Swift.h>
+#import <PisanoFeedback/PisanoFeedback-Swift.h>
 
 @interface ViewController ()
 @end

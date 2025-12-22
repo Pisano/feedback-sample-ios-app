@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import Feedback
+import PisanoFeedback
 
 class FeedbackManager {
     private init() { }
@@ -22,7 +22,7 @@ class FeedbackManager {
         }
     }
     
-    func showFlow(mode: ViewMode = .default, title: NSAttributedString? = nil, flowId: String, customer: [String: Any]? = nil, completion: ((Feedback.CloseStatus) -> Void)? = nil) {
+    func showFlow(mode: ViewMode = .default, title: NSAttributedString? = nil, flowId: String, customer: [String: Any]? = nil, completion: ((CloseStatus) -> Void)? = nil) {
         Pisano.show(mode: mode,
                     title: title,
                     flowId: flowId,

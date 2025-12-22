@@ -14,20 +14,26 @@ class FormViewModel: ObservableObject {
     @Published var phone = ""
     @Published var externalId = ""
     @Published var emailValidation = true
-    @Published var feedbackCallback: FeedbackCallback = .unknown
+    @Published var closeStatus: CloseStatus = .none
     
     func feedback() {
         emailValidation = email.isEmpty ? true : emailValidation
         
         if emailValidation {
-            let pisanoCustomer = PisanoCustomer(name: fullname, email: email, phoneNumber: phone, externalId: externalId)
-            FeedbackManager.shared.showFlow(customer: pisanoCustomer) { callback in
-                self.feedbackCallback = callback
+            var customer: [String: Any] = [:]
+            customer.addIfNotEmpty(key: "email", value: email)
+            customer.addIfNotEmpty(key: "name", value: fullname)
+            customer.addIfNotEmpty(key: "phoneNumber", value: phone)
+            customer.addIfNotEmpty(key: "externalId", value: externalId)
+
+            FeedbackManager.shared.showFlow(customer: customer.isEmpty ? nil : customer) { status in
+                self.closeStatus = status
             }
         }
     }
     
     func clear() {
-        feedbackCallback = .unknown
+        closeStatus = .none
+        Pisano.clear()
     }
 }

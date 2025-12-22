@@ -10,6 +10,8 @@
 		B0AAFF20281A8EEF004BC814 /* feedbackApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0AAFF1F281A8EEF004BC814 /* feedbackApp.swift */; };
 		B0AAFF24281A8EF2004BC814 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0AAFF23281A8EF2004BC814 /* Assets.xcassets */; };
 		B0AAFF27281A8EF2004BC814 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0AAFF26281A8EF2004BC814 /* Preview Assets.xcassets */; };
+		E9A1A1A1A1A1A1A1A1A1A1A2 /* PisanoSmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A1A1A1A1A1A1A1A1A1A1A1 /* PisanoSmokeTests.swift */; };
+		E9A0C0A0C0A0C0A0C0A0C0A1 /* PisanoSDKConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A0C0A0C0A0C0A0C0A0C0A0 /* PisanoSDKConfig.swift */; };
 		E90023462A8A192F0037DF2A /* FormViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90023442A8A192F0037DF2A /* FormViewModel.swift */; };
 		E90023472A8A192F0037DF2A /* FormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90023452A8A192F0037DF2A /* FormView.swift */; };
 		E900234B2A8A20500037DF2A /* MainViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90023492A8A20500037DF2A /* MainViewModel.swift */; };
@@ -35,8 +37,18 @@
 		E9CA8C582860881900AADA0E /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CA8C572860881900AADA0E /* WelcomeView.swift */; };
 		E9CA8C5A2860886100AADA0E /* AppManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CA8C592860886100AADA0E /* AppManager.swift */; };
 		E9DD137D291161AF000545C6 /* Font.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9DD137C291161AF000545C6 /* Font.swift */; };
-		E9E28CC92AA89F9F00F35E4B /* Feedback in Frameworks */ = {isa = PBXBuildFile; productRef = E9E28CC82AA89F9F00F35E4B /* Feedback */; };
+		E9E28CC92AA89F9F00F35E4B /* PisanoFeedback in Frameworks */ = {isa = PBXBuildFile; productRef = E9E28CC82AA89F9F00F35E4B /* PisanoFeedback */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		E9A1A1A1A1A1A1A1A1A1A1A9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B0AAFF14281A8EEF004BC814 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B0AAFF1B281A8EEF004BC814;
+			remoteInfo = "pisano-feedback";
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		E9208E85286DC4AA00E7811E /* Embed Frameworks */ = {
@@ -56,6 +68,9 @@
 		B0AAFF1F281A8EEF004BC814 /* feedbackApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = feedbackApp.swift; sourceTree = "<group>"; };
 		B0AAFF23281A8EF2004BC814 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B0AAFF26281A8EF2004BC814 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		E9A1A1A1A1A1A1A1A1A1A1A1 /* PisanoSmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PisanoSmokeTests.swift; sourceTree = "<group>"; };
+		E9A1A1A1A1A1A1A1A1A1A1A4 /* pisano-feedbackTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "pisano-feedbackTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E9A0C0A0C0A0C0A0C0A0C0A0 /* PisanoSDKConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PisanoSDKConfig.swift; sourceTree = "<group>"; };
 		E90023442A8A192F0037DF2A /* FormViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FormViewModel.swift; sourceTree = "<group>"; };
 		E90023452A8A192F0037DF2A /* FormView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FormView.swift; sourceTree = "<group>"; };
 		E90023492A8A20500037DF2A /* MainViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainViewModel.swift; sourceTree = "<group>"; };
@@ -91,7 +106,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E9E28CC92AA89F9F00F35E4B /* Feedback in Frameworks */,
+				E9E28CC92AA89F9F00F35E4B /* PisanoFeedback in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E9A1A1A1A1A1A1A1A1A1A1A6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -102,6 +124,7 @@
 			isa = PBXGroup;
 			children = (
 				B0AAFF1E281A8EEF004BC814 /* pisano-feedback */,
+				E9A1A1A1A1A1A1A1A1A1A1A8 /* pisano-feedbackTests */,
 				B0AAFF1D281A8EEF004BC814 /* Products */,
 				E986132B282CFB0B005800D8 /* Frameworks */,
 			);
@@ -111,8 +134,17 @@
 			isa = PBXGroup;
 			children = (
 				B0AAFF1C281A8EEF004BC814 /* pisano-feedback.app */,
+				E9A1A1A1A1A1A1A1A1A1A1A4 /* pisano-feedbackTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		E9A1A1A1A1A1A1A1A1A1A1A8 /* pisano-feedbackTests */ = {
+			isa = PBXGroup;
+			children = (
+				E9A1A1A1A1A1A1A1A1A1A1A1 /* PisanoSmokeTests.swift */,
+			);
+			path = "pisano-feedbackTests";
 			sourceTree = "<group>";
 		};
 		B0AAFF1E281A8EEF004BC814 /* pisano-feedback */ = {
@@ -232,6 +264,7 @@
 			isa = PBXGroup;
 			children = (
 				B0AAFF1F281A8EEF004BC814 /* feedbackApp.swift */,
+				E9A0C0A0C0A0C0A0C0A0C0A0 /* PisanoSDKConfig.swift */,
 				E9CA8C592860886100AADA0E /* AppManager.swift */,
 				E95F92EB28620593003AFDBB /* FeedbackManager.swift */,
 			);
@@ -256,11 +289,29 @@
 			);
 			name = "pisano-feedback";
 			packageProductDependencies = (
-				E9E28CC82AA89F9F00F35E4B /* Feedback */,
+				E9E28CC82AA89F9F00F35E4B /* PisanoFeedback */,
 			);
 			productName = feedback;
 			productReference = B0AAFF1C281A8EEF004BC814 /* pisano-feedback.app */;
 			productType = "com.apple.product-type.application";
+		};
+		E9A1A1A1A1A1A1A1A1A1A1A3 /* pisano-feedbackTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E9A1A1A1A1A1A1A1A1A1A1AB /* Build configuration list for PBXNativeTarget "pisano-feedbackTests" */;
+			buildPhases = (
+				E9A1A1A1A1A1A1A1A1A1A1A5 /* Sources */,
+				E9A1A1A1A1A1A1A1A1A1A1A6 /* Frameworks */,
+				E9A1A1A1A1A1A1A1A1A1A1A7 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E9A1A1A1A1A1A1A1A1A1A1AA /* PBXTargetDependency */,
+			);
+			name = "pisano-feedbackTests";
+			productName = "pisano-feedbackTests";
+			productReference = E9A1A1A1A1A1A1A1A1A1A1A4 /* pisano-feedbackTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -273,6 +324,9 @@
 				LastUpgradeCheck = 1330;
 				TargetAttributes = {
 					B0AAFF1B281A8EEF004BC814 = {
+						CreatedOnToolsVersion = 13.3.1;
+					};
+					E9A1A1A1A1A1A1A1A1A1A1A3 = {
 						CreatedOnToolsVersion = 13.3.1;
 					};
 				};
@@ -295,6 +349,7 @@
 			projectRoot = "";
 			targets = (
 				B0AAFF1B281A8EEF004BC814 /* pisano-feedback */,
+				E9A1A1A1A1A1A1A1A1A1A1A3 /* pisano-feedbackTests */,
 			);
 		};
 /* End PBXProject section */
@@ -313,6 +368,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E9A1A1A1A1A1A1A1A1A1A1A7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -325,6 +387,7 @@
 				E93DBE74282B8F3C00D8C4F6 /* BackgroundView.swift in Sources */,
 				E96BFEDB282C02490040B153 /* String.swift in Sources */,
 				B0AAFF20281A8EEF004BC814 /* feedbackApp.swift in Sources */,
+				E9A0C0A0C0A0C0A0C0A0C0A1 /* PisanoSDKConfig.swift in Sources */,
 				E95F92EA2862009F003AFDBB /* View.swift in Sources */,
 				E93DBE86282BD23900D8C4F6 /* CGFloat.swift in Sources */,
 				E9CA8C582860881900AADA0E /* WelcomeView.swift in Sources */,
@@ -345,7 +408,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E9A1A1A1A1A1A1A1A1A1A1A5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E9A1A1A1A1A1A1A1A1A1A1A2 /* PisanoSmokeTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		E9A1A1A1A1A1A1A1A1A1A1AA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B0AAFF1B281A8EEF004BC814 /* pisano-feedback */;
+			targetProxy = E9A1A1A1A1A1A1A1A1A1A1A9 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		E96BFED5282C006B0040B153 /* Localizable.strings */ = {
@@ -496,7 +575,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "pisano-feedback/Resources/Base.lproj/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "Pisano Feedback";
+				INFOPLIST_KEY_CFBundleDisplayName = "Pisano Feedback (Web)";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = "Launch Screen";
@@ -531,7 +610,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "pisano-feedback/Resources/Base.lproj/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "Pisano Feedback";
+				INFOPLIST_KEY_CFBundleDisplayName = "Pisano Feedback (Web)";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = "Launch Screen";
@@ -549,6 +628,56 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		E9A1A1A1A1A1A1A1A1A1A1AC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				DEVELOPMENT_TEAM = 3MJWR4HYD7;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Pisano Feedback Tests";
+				INFOPLIST_KEY_PISANO_TEST_ACCESS_KEY = "$(PISANO_TEST_ACCESS_KEY)";
+				INFOPLIST_KEY_PISANO_TEST_API_URL = "$(PISANO_TEST_API_URL)";
+				INFOPLIST_KEY_PISANO_TEST_APP_ID = "$(PISANO_TEST_APP_ID)";
+				INFOPLIST_KEY_PISANO_TEST_EVENT_URL = "$(PISANO_TEST_EVENT_URL)";
+				INFOPLIST_KEY_PISANO_TEST_FEEDBACK_URL = "$(PISANO_TEST_FEEDBACK_URL)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = co.pisano.feedbackTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/pisano-feedback.app/pisano-feedback";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		E9A1A1A1A1A1A1A1A1A1A1AD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				DEVELOPMENT_TEAM = 3MJWR4HYD7;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Pisano Feedback Tests";
+				INFOPLIST_KEY_PISANO_TEST_ACCESS_KEY = "$(PISANO_TEST_ACCESS_KEY)";
+				INFOPLIST_KEY_PISANO_TEST_API_URL = "$(PISANO_TEST_API_URL)";
+				INFOPLIST_KEY_PISANO_TEST_APP_ID = "$(PISANO_TEST_APP_ID)";
+				INFOPLIST_KEY_PISANO_TEST_EVENT_URL = "$(PISANO_TEST_EVENT_URL)";
+				INFOPLIST_KEY_PISANO_TEST_FEEDBACK_URL = "$(PISANO_TEST_FEEDBACK_URL)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = co.pisano.feedbackTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/pisano-feedback.app/pisano-feedback";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -574,6 +703,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		E9A1A1A1A1A1A1A1A1A1A1AB /* Build configuration list for PBXNativeTarget "pisano-feedbackTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E9A1A1A1A1A1A1A1A1A1A1AC /* Debug */,
+				E9A1A1A1A1A1A1A1A1A1A1AD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
@@ -581,17 +719,17 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Pisano/pisano-ios.git";
 			requirement = {
-				kind = exactVersion;
-				version = 0.2.2;
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.16;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		E9E28CC82AA89F9F00F35E4B /* Feedback */ = {
+		E9E28CC82AA89F9F00F35E4B /* PisanoFeedback */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E9E28CC72AA89F9F00F35E4B /* XCRemoteSwiftPackageReference "pisano-ios" */;
-			productName = Feedback;
+			productName = PisanoFeedback;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

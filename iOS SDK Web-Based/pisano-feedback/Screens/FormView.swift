@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import Feedback
+import PisanoFeedback
 
 struct FormView: View {
     @ObservedObject var viewModel: FormViewModel
