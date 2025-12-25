@@ -2,15 +2,30 @@
 #
 # gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
 
+## Cursor / VS Code / IDE
+.cursor/
+**/.cursor/**
+.vscode/
+.idea/
+
+## macOS
+.DS_Store
+
 ## User settings
-xcuserdata/
+**/xcuserdata/
+**/*.xcuserstate
 
 ## Google Info Plist
-GoogleService-Info.plist
+# (Removed) GoogleService-Info.plist is no longer required by the sample project.
+
+## Pisano secrets (local only)
+PisanoSecrets.plist
+**/PisanoSecrets.plist
 
 ## Test Outputs
 test_output/
 xctest/
+*.xcresult
 ## compatibility with Xcode 8 and earlier (ignoring not required starting Xcode 9)
 *.xcscmblueprint
 *.xccheckout
@@ -18,6 +33,7 @@ xctest/
 ## compatibility with Xcode 3 and earlier (ignoring not required starting Xcode 4)
 build/
 DerivedData/
+**/DerivedData/
 *.moved-aside
 *.pbxuser
 !default.pbxuser
