@@ -12,10 +12,15 @@
 .DS_Store
 
 ## User settings
-xcuserdata/
+**/xcuserdata/
+**/*.xcuserstate
 
 ## Google Info Plist
-GoogleService-Info.plist
+# (Removed) GoogleService-Info.plist is no longer required by the sample project.
+
+## Pisano secrets (local only)
+PisanoSecrets.plist
+**/PisanoSecrets.plist
 
 ## Test Outputs
 test_output/
@@ -28,6 +33,7 @@ xctest/
 ## compatibility with Xcode 3 and earlier (ignoring not required starting Xcode 4)
 build/
 DerivedData/
+**/DerivedData/
 *.moved-aside
 *.pbxuser
 !default.pbxuser

@@ -1,4 +1,4 @@
-# Feedback iOS SDK
+# pisano ios sdk sample app
 
 Pisano Feedback iOS SDK is an SDK that allows you to easily integrate user feedback collection into your iOS applications. With this SDK, you can collect surveys and feedback from your users and improve the user experience.
 
@@ -18,7 +18,7 @@ Pisano Feedback iOS SDK is an SDK that allows you to easily integrate user feedb
 ## ✨ Features
 
 - ✅ **Web-Based Feedback Forms**: Modern and flexible web-based form support
-- ✅ **Native iOS Integration**: Fully native iOS SDK
+- ✅ **iOS Integration**: Sample iOS app showing how to boot/show the SDK
 - ✅ **Objective-C Compatibility**: Can be used in both Swift and Objective-C projects
 - ✅ **Flexible View Modes**: Full-screen and bottom sheet view options
 - ✅ **Health Check**: Ability to check SDK status
@@ -64,30 +64,24 @@ pod install
 
 > Note: This repository contains sample iOS apps and is already configured with SPM. There is no `Podfile` in this repo unless you add one.
 
-## 🧩 Native vs Web-Based usage
+## 🧩 Sample app
 
-This repo includes two sample apps:
+This repo includes a single iOS sample app:
 
-- **Web-Based sample**: `iOS SDK Web-Based/pisano-feedback.xcodeproj` (imports `PisanoFeedback`)
-- **Native sample**: `iOS SDK Native/pisano-feedback.xcodeproj` (imports `PisanoFeedback`)
+- **Sample**: `pisano-ios-sdk-sample-app/pisano-ios-sdk-sample-app.xcodeproj` (imports `PisanoFeedback`)
 
-> Note: In SDK **1.0.16**, both samples use the same module/product (`PisanoFeedback`). The “Web-Based vs Native” naming here is about the **usage style** (web widget URL + boot/show flow vs native-focused sample UI), not different packages.
-
-### Web-Based (Feedback) — boot once, then show
+### Sample app — boot once, then show
 
 1. Call `Pisano.boot(...)` once at app startup (e.g. `AppDelegate`).
 2. Later, call `Pisano.show(...)`.
 
-In this repo’s Web-Based sample, credentials are read from `Info.plist` keys:
+In this sample app, credentials are read from `Info.plist` keys:
 `PISANO_APP_ID`, `PISANO_ACCESS_KEY`, `PISANO_API_URL`, `PISANO_FEEDBACK_URL`.
 
-### Native (PisanoFeedback) — create instance, then show
-
-1. Create a `Pisano(appId:accessKey:apiUrl:)` instance when you need it.
-2. Call `pisano.show(...)`.
-
-In this repo’s Native sample, credentials are read from `Info.plist` keys:
-`PISANO_APP_ID`, `PISANO_ACCESS_KEY`, `PISANO_API_URL`.
+> TODO (required): Set your own credentials locally.  
+> - Copy `pisano-ios-sdk-sample-app/App/Resources/PisanoSecrets.example.plist` → `PisanoSecrets.plist` and fill `PISANO_APP_ID` / `PISANO_ACCESS_KEY` / `PISANO_API_URL` / `PISANO_FEEDBACK_URL`.  
+> - `PisanoSecrets.plist` is ignored by git; it must NOT be committed.  
+> - If you don’t set credentials, the app will not crash; it will just skip `Pisano.boot(...)` and print a warning.
 
 ## 🚀 Quick Start
 

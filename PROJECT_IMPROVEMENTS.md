@@ -28,7 +28,7 @@ Yani “log stratejisi + network edge-case handling + kapsamlı refactor” gibi
 
 - **[Kısmi]** Sample isimleri daha anlaşılır hale getirildi:
   - App display name’leri ayrıştırıldı: **`Pisano Feedback (Web)`** ve **`Pisano Feedback (Native)`**.
-- **[Kısmi]** README’de “Web-Based vs Native” ayrımı netleştirildi:
+- **[Kısmi]** README sadeleştirildi:
   - SDK **1.0.16’da tek product/modül** olduğu ve “ayrımın kullanım stilini” anlattığı not edildi.
 - **[Yapılmadı]** Root folder yapısını (örn. `Samples/Web`, `Samples/Native`) yeniden düzenleme:
   - Bu değişiklik “yapıyı bozma” riski taşıdığı için yapılmadı.
@@ -72,7 +72,7 @@ Yani “log stratejisi + network edge-case handling + kapsamlı refactor” gibi
 
 ### 2.7 Basit smoke test checklist
 
-- **[Tamam]** XCTest smoke test target’ları eklendi (Native + Web):
+- **[Tamam]** XCTest smoke test target’ı eklendi (Web sample):
   - `xcodebuild test` çalışır.
   - Credentials yoksa test **skip** olur (CI’da kırmaz).
   - Credentials girilirse **boot + healthCheck** ile API erişimi doğrulanır.
@@ -84,8 +84,8 @@ Yani “log stratejisi + network edge-case handling + kapsamlı refactor” gibi
 
 ### 3.1 Uygulama derlenir, çalışır, temel akış sorunsuz tamamlanır
 
-- **Derleme**: ✅ Native + Web projeleri `xcodebuild build` ile derleniyor.
-- **Test**: ✅ Native + Web `xcodebuild test` **başarılı** (credentials yoksa skip, varsa API doğrulama).
+- **Derleme**: ✅ Web proje `xcodebuild build` ile derleniyor.
+- **Test**: ✅ Web `xcodebuild test` **başarılı** (credentials yoksa skip, varsa API doğrulama).
 - **Temel akış**: “show/survey submit” uçtan uca akış için manuel test gerekiyor (flow/backend konfigürasyonuna bağlı).
 
 ### 3.2 Kod okunabilirliği belirgin artmış, tekrarlı parçalar azaltılmış
@@ -104,18 +104,17 @@ Yani “log stratejisi + network edge-case handling + kapsamlı refactor” gibi
 
 ---
 
-## 4) Entegrasyon Gerçekliği: “Web” vs “Native” ne?
+## 4) Entegrasyon Gerçekliği: “Web” sample ne?
 
-Bu repo iki sample app içerir:
+Bu repo tek sample app içerir:
 
-- `iOS SDK Web-Based/pisano-feedback.xcodeproj`
-- `iOS SDK Native/pisano-feedback.xcodeproj`
+- `pisano-ios-sdk-sample-app/pisano-ios-sdk-sample-app.xcodeproj`
 
 SDK **1.0.16**’da SPM paketi tek product sağlar:
 
 - **Product/Module**: `PisanoFeedback`
 
-Dolayısıyla iki sample da `import PisanoFeedback` ile çalışır. Ayrım “farklı paket” değil, **farklı kullanım senaryosu** olarak konumlanır.
+Dolayısıyla sample `import PisanoFeedback` ile çalışır.
 
 ---
 
@@ -135,36 +134,20 @@ Her iki sample’da SDK ayarları `Info.plist` key’leri ile yapılır:
 
 ## 6) Build / Test (Komutlar)
 
-### 6.1 Web-Based build
+### 6.1 Build
 
 ```bash
-xcodebuild -project "iOS SDK Web-Based/pisano-feedback.xcodeproj" \
+xcodebuild -project "pisano-ios-sdk-sample-app/pisano-ios-sdk-sample-app.xcodeproj" \
   -scheme "pisano-feedback" \
   -configuration Debug \
   -destination "platform=iOS Simulator,name=iPhone 16 Pro" \
   build
 ```
 
-### 6.2 Native build
+### 6.2 Test
 
 ```bash
-xcodebuild -project "iOS SDK Native/pisano-feedback.xcodeproj" \
-  -scheme "pisano-feedback" \
-  -configuration Debug \
-  -destination "platform=iOS Simulator,name=iPhone 16 Pro" \
-  build
-```
-
-### 6.3 Test (her iki proje için)
-
-```bash
-xcodebuild -project "iOS SDK Web-Based/pisano-feedback.xcodeproj" \
-  -scheme "pisano-feedback" \
-  -configuration Debug \
-  -destination "platform=iOS Simulator,name=iPhone 16 Pro" \
-  test
-
-xcodebuild -project "iOS SDK Native/pisano-feedback.xcodeproj" \
+xcodebuild -project "pisano-ios-sdk-sample-app/pisano-ios-sdk-sample-app.xcodeproj" \
   -scheme "pisano-feedback" \
   -configuration Debug \
   -destination "platform=iOS Simulator,name=iPhone 16 Pro" \
