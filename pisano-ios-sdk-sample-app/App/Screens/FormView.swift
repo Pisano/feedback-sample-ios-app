@@ -1,10 +1,3 @@
-//
-//  FormView.swift
-//  pisano-feedback
-//
-//  Created by Abdulkerim Şahin on 27.06.2022.
-//
-
 import SwiftUI
 import PisanoFeedback
 
@@ -83,6 +76,9 @@ struct FormView: View {
                 
                 Text(.actionStatus)
                 Text(viewModel.sdkCallback.description)
+                Text(viewModel.preflightStatus)
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
                 
                 AppButton(title: .getFeedback) {
                     viewModel.feedback()

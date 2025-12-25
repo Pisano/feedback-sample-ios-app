@@ -1,182 +1,174 @@
-# Feedback Sample iOS App — Yapılanlar / Durum / Sonraki Adımlar
+# Feedback Sample iOS App — Improvements / Yapılanlar (Müşteri Raporu)
 
-Bu doküman `Pisano/feedback-sample-ios-app` reposunda yapılan düzenlemeleri ve senin paylaştığın **Amaç/Kapsam / Yapılacaklar / Kabul Kriterleri** maddelerine göre durum özetini içerir.
+Bu doküman, `Pisano/feedback-sample-ios-app` reposunda yapılan düzenlemeleri ve nedenlerini (eski yapı → yeni yapı) müşteri paylaşımına uygun şekilde özetler.
 
-> Not: Bu repo **SDK kaynak kodu değil**; iki ayrı **sample iOS app** içerir. SDK, SPM ile binary olarak çekilir.
-
----
-
-## 1) Amaç / Kapsam (senin maddelerin)
-
-**Hedef**: iOS sample uygulamada kodun sadeleştirilmesi, standartlara çekilmesi ve debug/izlenebilirlik için loglama eklenmesi.
-
-Bu çalışma kapsamında ağırlıklı olarak:
-
-- SDK entegrasyonunun güncellenmesi/sağlamlaştırılması (SPM, 1.0.16)
-- Konfigürasyonun tek yerden ve güvenli şekilde yapılması (Info.plist)
-- Dokümantasyonun güncellenmesi
-- Build/test otomasyonu için basit smoke test hedefleri
-- IDE/araç çıktılarının git’e girmemesi
-
-Yani “log stratejisi + network edge-case handling + kapsamlı refactor” gibi başlıkların bir kısmı **tamamlanmadı** (aşağıdaki checklist’te açık).
+> Not: Bu repo **SDK kaynak kodu değildir**. Repo, Pisano Feedback iOS SDK’nın nasıl entegre edilip kullanılacağını gösteren **sample iOS uygulamaları** içerir.
 
 ---
 
-## 2) Yapılacaklar Checklist (Durum)
+## Kısa Özet (Ne değişti?)
 
-### 2.1 Kod gözden geçirme, naming / folder structure iyileştirmeleri
-
-- **[Kısmi]** Sample isimleri daha anlaşılır hale getirildi:
-  - App display name’leri ayrıştırıldı: **`Pisano Feedback (Web)`** ve **`Pisano Feedback (Native)`**.
-- **[Kısmi]** README sadeleştirildi:
-  - SDK **1.0.16’da tek product/modül** olduğu ve “ayrımın kullanım stilini” anlattığı not edildi.
-- **[Yapılmadı]** Root folder yapısını (örn. `Samples/Web`, `Samples/Native`) yeniden düzenleme:
-  - Bu değişiklik “yapıyı bozma” riski taşıdığı için yapılmadı.
-
-### 2.2 Refactor: tekrar eden parçaların ayrıştırılması, daha okunabilir akış
-
-- **[Kısmi/Tamam]** Konfigürasyon okuma tekrarları azaltıldı:
-  - Her iki sample’da `Info.plist` üzerinden okuyan `PisanoSDKConfig` helper’ı eklendi.
-- **[Kısmi]** Boot/init akışı standardize edildi:
-  - “Boş string ile init” gibi durumlar temizlendi.
-- **[Yapılmadı]** UI/VM/component tarafında büyük ölçekli refactor:
-  - Örn. iki sample’ın ortak view/component’lerini tek package/module’a ayırma vb. yapılmadı.
-
-### 2.3 Gereksiz bağımlılık/dosya temizliği
-
-- **[Kısmi]** Build’i kıran eksik `GoogleService-Info.plist` için placeholder eklendi.
-  - Firebase kullanılmıyorsa bu dosyalar kullanılmayabilir; ama Xcode projede kaynak olarak bekleniyordu.
-- **[Yapılmadı]** Repo genelinde “dependency audit” / gereksiz dosya kaldırma:
-  - Örn. Firebase entegrasyonu gereksizse Xcode projeden tamamen çıkarmak gibi bir temizlik yapılmadı.
-
-### 2.4 Network error handling ve edge-case’lerin düzenlenmesi
-
-- **[Kısmi]** Konfig eksikliği için guard + uyarı mesajı eklendi (ör. config missing).
-- **[Yapılmadı]** UI seviyesinde kapsamlı error handling:
-  - init başarısız, healthCheck fail, network fail, invalid credentials vb. için kullanıcıya gösterim/handling genişletilmedi.
-  - SDK binary olduğu için network katmanının tamamı değiştirilemez; ancak sample UI’da durum gösterilebilir.
-
-### 2.5 Loglama (init, auth/config load, survey load, submit, fail case’leri)
-
-- **[Kısmi]** “Config missing” gibi kritik yerde log/print var.
-- **[Yapılmadı]** Standart bir log altyapısı (`os.Logger`/`OSLog`) ve event bazlı log noktaları:
-  - init/boot result, show çağrısı, healthCheck sonucu, submit callback, error mapping vb.
-  - Hassas veriler (accessKey, appId vb.) loglanmayacak şekilde maskeleme politikası.
-
-### 2.6 README + build/run dokümantasyonu güncelleme
-
-- **[Tamam]** README ve ilgili md’ler güncellendi:
-  - SPM + CocoaPods örnekleri **1.0.16**.
-  - “Bu repo sample; Podfile yok” açıklaması.
-  - API reference genişletme (CloseStatus, eventUrl, track/clear notları vb.).
-
-### 2.7 Basit smoke test checklist
-
-- **[Tamam]** XCTest smoke test target’ı eklendi (Web sample):
-  - `xcodebuild test` çalışır.
-  - Credentials yoksa test **skip** olur (CI’da kırmaz).
-  - Credentials girilirse **boot + healthCheck** ile API erişimi doğrulanır.
-- **[İsteğe bağlı]** README’ye manuel smoke checklist maddeleri ayrıca eklenebilir.
+- Eskiden repo içinde **“Native” örnek** vardı çünkü geçmişte SDK tarafında “native UI” olarak konumlanan bir kullanım tarzı vardı.
+- Zaman içinde SDK tarafı **tek modül/product** altında toplandı (**`PisanoFeedback`**) ve widget arayüzü pratikte **web tabanlı** çalıştığı için “Native vs Web-Based” ayrımı sample repo tarafında **anlamsız/tekrarlı** hale geldi.
+- Bu yüzden **Native örnek tamamen kaldırıldı**.
+- Repo artık iki modern sample app içeriyor:
+  - **SwiftUI sample** (SwiftUI ile örnek UI akışı)
+  - **UIKit sample** (tamamen UIKit ile aynı akış)
 
 ---
 
-## 3) Kabul Kriterleri (Durum)
+## Repo’nun Son Hali (Yeni yapı)
 
-### 3.1 Uygulama derlenir, çalışır, temel akış sorunsuz tamamlanır
+Repo iki sample uygulama içerir (aynı SDK, farklı UI framework):
 
-- **Derleme**: ✅ Web proje `xcodebuild build` ile derleniyor.
-- **Test**: ✅ Web `xcodebuild test` **başarılı** (credentials yoksa skip, varsa API doğrulama).
-- **Temel akış**: “show/survey submit” uçtan uca akış için manuel test gerekiyor (flow/backend konfigürasyonuna bağlı).
+- **SwiftUI sample**: `pisano-ios-sdk-sample-app/pisano-ios-sdk-sample-app.xcodeproj`
+- **UIKit (Swift) sample**: `pisano-ios-sdk-sample-app-uikit/pisano-ios-sdk-sample-app.xcodeproj`
 
-### 3.2 Kod okunabilirliği belirgin artmış, tekrarlı parçalar azaltılmış
+Her iki uygulama da:
 
-- **Kısmi**: Konfig/boot tarafı sadeleşti.
-- **Eksik**: UI/VM tarafında büyük refactor yapılmadı.
-
-### 3.3 Kritik noktalarda loglar var ve hassas veri loglanmıyor
-
-- **Kısmi**: Hassas veriler repoya/teste gömülmedi, loglanmıyor.
-- **Eksik**: Kapsamlı log stratejisi (boot/show/survey lifecycle) eklenmedi.
-
-### 3.4 README güncel
-
-- ✅ Güncel.
+- SDK’yı **SPM ile** alır
+- **`import PisanoFeedback`** ile entegre olur
+- Uygulama açılışında **`Pisano.boot(...)`** yapar
+- Kullanıcı aksiyonuyla **`Pisano.show(...)`** çağırır
 
 ---
 
-## 4) Entegrasyon Gerçekliği: “Web” sample ne?
+## Neleri Kaldırdık?
 
-Bu repo tek sample app içerir:
-
-- `pisano-ios-sdk-sample-app/pisano-ios-sdk-sample-app.xcodeproj`
-
-SDK **1.0.16**’da SPM paketi tek product sağlar:
-
-- **Product/Module**: `PisanoFeedback`
-
-Dolayısıyla sample `import PisanoFeedback` ile çalışır.
+- **Native sample proje** kaldırıldı (tekrarlı/yanıltıcı ayrım oluşturduğu için).
+- Dokümanlarda kalan eski referanslar temizlendi:
+  - Eski product/import isimleri (`Feedback` gibi) → **`PisanoFeedback`**
+- Repo’dan **hardcoded credential / API key** çıkarıldı.
 
 ---
 
-## 5) Konfigürasyon (Secrets yok, müşteriye örnek var)
+## Neler Ekledik?
 
-Her iki sample’da SDK ayarları `Info.plist` key’leri ile yapılır:
+### UIKit sample (yeni)
 
-- `PISANO_APP_ID`
-- `PISANO_ACCESS_KEY`
-- `PISANO_API_URL`
-- `PISANO_FEEDBACK_URL`
-- `PISANO_EVENT_URL` (opsiyonel, boş bırakılabilir)
+- SwiftUI örneğiyle aynı UI/flow’u takip eden **UIKit tabanlı** örnek uygulama eklendi.
+- Akış iki ekranlı:
+  - **Welcome** → **Form**
+- UIKit’te klavye deneyimi iyileştirildi:
+  - scroll ile kapatma
+  - tap ile kapatma
+  - return ile next/close
+  - phonePad için toolbar “Done”
 
-> Bu repo’da bu key’ler **boş** bırakılabilir; gerçek değerler git’e girmez.
+### Secrets yönetimi (local-only)
 
----
+- Her iki sample için `PisanoSecrets.example.plist` eklendi.
+- Local geliştirmede:
+  - `PisanoSecrets.example.plist` → `PisanoSecrets.plist` kopyalanır
+  - `PISANO_APP_ID`, `PISANO_ACCESS_KEY`, `PISANO_API_URL`, `PISANO_FEEDBACK_URL` (opsiyonel: `PISANO_EVENT_URL`) doldurulur
+- `PisanoSecrets.plist` **gitignore**’dadır (repo’ya girmez).
 
-## 6) Build / Test (Komutlar)
+### Smoke test
 
-### 6.1 Build
-
-```bash
-xcodebuild -project "pisano-ios-sdk-sample-app/pisano-ios-sdk-sample-app.xcodeproj" \
-  -scheme "pisano-feedback" \
-  -configuration Debug \
-  -destination "platform=iOS Simulator,name=iPhone 16 Pro" \
-  build
-```
-
-### 6.2 Test
-
-```bash
-xcodebuild -project "pisano-ios-sdk-sample-app/pisano-ios-sdk-sample-app.xcodeproj" \
-  -scheme "pisano-feedback" \
-  -configuration Debug \
-  -destination "platform=iOS Simulator,name=iPhone 16 Pro" \
-  test
-```
-
-> Credentials `Info.plist`’te yoksa smoke test **skip** olur (başarısız sayılmaz).
+- Her iki sample’da `AppTests/PisanoSmokeTests.swift` eklendi.
+- Credentials yoksa test **skip** olur (CI kırmaması için).
+- Credentials varsa **boot + healthCheck** ile API erişimi doğrulanır.
 
 ---
 
-## 7) Güvenlik / Git Hijyeni
+## Neleri Geliştirdik?
 
-- `.gitignore` güncellendi:
-  - IDE/araç çıktıları git’e girmez.
-- Test dosyalarında **hardcoded credential yok**.
+### Dokümantasyon
+
+- `README.md` kapsamlı hale getirildi:
+  - iki sample path’i
+  - kurulum (SPM/CocoaPods, **1.0.16**)
+  - secrets akışı
+  - SDK kullanımı (Swift + Objective‑C örnekleri)
+  - build/run + test komutları
+  - troubleshooting
+
+### Konfig / entegrasyon standardı
+
+- SDK module/product: **`PisanoFeedback`**
+- SDK versiyonu: **1.0.16**
+- Konfig okuma tekilleştirildi: `PisanoSDKConfig` (bundle secrets → Info.plist fallback)
+
+### Logging / izlenebilirlik
+
+- Kritik noktalara `OSLog` eklendi:
+  - app launch + config durumu (eksik key listesi)
+  - `Pisano.boot` sonucu
+  - `Pisano.healthCheck` sonucu
+  - `Pisano.show` çağrısı + callback status
+  - `Pisano.clear`
+- Hassas veri (appId/accessKey) **loglanmıyor**.
+
+### Network / edge-case handling
+
+- Show öncesi **healthCheck preflight** eklendi:
+  - SwiftUI: ekranda status (“HealthCheck ok/failed”)
+  - UIKit: fail durumunda status + alert
+- Config eksikliği durumda crash yok; kullanıcıya yönlendirme var.
 
 ---
 
-## 8) “Yapıyı bozmadan” önerilen sonraki adımlar
+## Yapılacaklar (Checklist)
 
-Bu adımlar repo yapısını bozmadan (path/target isimleriyle oynamadan) yapılabilir:
+### Kod gözden geçirme, naming / folder structure iyileştirmeleri — ✅
 
-1. **Logger altyapısı**: `os.Logger` tabanlı tek bir `Logger+Pisano.swift` veya `AppLogger.swift`
-   - boot/show/healthCheck sonuçları (hassas veri maskeleme)
-2. **UI error handling**:
-   - initFailed/healthCheckFailed durumlarını kullanıcıya minimal banner/label ile gösterme
-3. **Manual smoke checklist**:
-   - README’ye “1) Info.plist doldur 2) boot ok 3) show 4) closeStatus 5) submit” gibi kısa checklist
-4. **Dependency clean** (opsiyonel):
-   - Firebase kullanılmıyorsa GoogleService referanslarını projeden kaldırmak (placeholder yerine)
+- Repo iki sample app olarak netleştirildi (SwiftUI + UIKit).
 
+### Refactor: tekrar eden parçaların ayrıştırılması, daha okunabilir akış — ⚠️ (kısmi)
 
+- Konfig okuma ve SDK çağrıları tekilleştirildi.
+- Kapsamlı “folder restructure / ortak module çıkarma” yapılmadı (sample repo yapısını bozma riski).
+
+### Gereksiz bağımlılık/dosya temizliği — ✅
+
+- Gereksiz kalıntılar temizlendi, gitignore sıkılaştırıldı.
+
+### Network error handling ve edge-case’lerin düzenlenmesi — ✅
+
+- healthCheck preflight + kullanıcıya status/alert.
+
+### Loglama: init, authentication/konfig yükleme, survey load, submit, fail case’leri — ✅
+
+- OSLog ile boot/show/healthCheck/callback/clear logları eklendi.
+- Hassas veri loglanmıyor.
+
+### README + build/run dokümantasyonu güncelleme — ✅
+
+- README güncel ve tek kaynak.
+
+### Basit smoke test checklist — ✅
+
+- Smoke testler eklendi ve README’ye test komutları yazıldı.
+
+---
+
+## Kabul Kriterleri
+
+### Uygulama derlenir, çalışır, temel akış sorunsuz tamamlanır — ✅
+
+- SwiftUI + UIKit projeleri `xcodebuild build` ile doğrulandı.
+
+### Kod okunabilirliği belirgin artmış, tekrarlı parçalar azaltılmış — ✅ (targeted)
+
+- Entegrasyon/config/logging/docs tarafında net sadeleşme.
+
+### Kritik noktalarda loglar var ve hassas veri loglanmıyor — ✅
+
+- OSLog var; secret değerleri loglanmıyor.
+
+### README güncel — ✅
+
+- Kurulum + kullanım + test + troubleshooting içeriyor.
+
+---
+
+## Kanıt / İlgili dosyalar (yüksek seviye)
+
+- **Docs**: `README.md`, `PROJECT_IMPROVEMENTS.md`
+- **Config**: `*/App/Shared/PisanoSDKConfig.swift`
+- **Boot logging**: `*/App/Shared/feedbackApp.swift`
+- **Show/healthCheck logging**: `*/App/Shared/FeedbackManager.swift`
+- **Edge-case UI**:
+  - SwiftUI: `pisano-ios-sdk-sample-app/App/Screens/FormViewModel.swift`, `FormView.swift`
+  - UIKit: `pisano-ios-sdk-sample-app-uikit/App/Screens/FormViewController.swift`
+- **Smoke tests**: `*/AppTests/PisanoSmokeTests.swift`

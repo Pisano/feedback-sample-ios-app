@@ -1,10 +1,3 @@
-//
-//  Font.swift
-//  pisano-feedback
-//
-//  Created by Abdulkerim Şahin on 1.11.2022.
-//
-
 import SwiftUI
 
 extension UIFont {

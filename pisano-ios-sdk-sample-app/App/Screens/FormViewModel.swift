@@ -1,10 +1,3 @@
-//
-//  FormViewModel.swift
-//  pisano-feedback
-//
-//  Created by Abdulkerim Şahin on 27.06.2022.
-//
-
 import SwiftUI
 import UIKit
 import PisanoFeedback
@@ -21,6 +14,7 @@ class FormViewModel: ObservableObject {
     @Published var selectedMode: ViewMode = .default
     @Published var selectedFont: UIFont = .preferredFont(forTextStyle: .title1)
     @Published var showSelectFont = false
+    @Published var preflightStatus: String = ""
     
     var colors: [Color] = [.blue, .green, .yellow, .darkGray, .lightGray, .black, .gray, .orange, .pink, .purple, .red]
     var fonts: [UIFont] = [.preferredFont(forTextStyle: .largeTitle), .preferredFont(forTextStyle: .title1), .preferredFont(forTextStyle: .title2), .preferredFont(forTextStyle: .title3), .preferredFont(forTextStyle: .headline), .preferredFont(forTextStyle: .subheadline), .preferredFont(forTextStyle: .body), .preferredFont(forTextStyle: .callout), .preferredFont(forTextStyle: .footnote), .preferredFont(forTextStyle: .caption1), .preferredFont(forTextStyle: .caption2)]
@@ -51,15 +45,32 @@ class FormViewModel: ObservableObject {
             }
         }
 
-        if emailValidation {
-            FeedbackManager.shared.showFlow(mode: selectedMode, title: title, flowId: "", customer: customer.isEmpty ? nil : customer) { sdkcallback in
-                self.sdkCallback = sdkcallback
+        guard emailValidation else { return }
+
+        preflightStatus = "HealthCheck: running..."
+        Pisano.healthCheck { ok in
+            DispatchQueue.main.async {
+                if !ok {
+                    self.preflightStatus = "HealthCheck: failed (check network/urls)"
+                    return
+                }
+
+                self.preflightStatus = "HealthCheck: ok"
+                FeedbackManager.shared.showFlow(mode: self.selectedMode,
+                                                title: title,
+                                                flowId: "",
+                                                customer: customer.isEmpty ? nil : customer) { sdkcallback in
+                    DispatchQueue.main.async {
+                        self.sdkCallback = sdkcallback
+                    }
+                }
             }
         }
     }
     
     func clear() {
         sdkCallback = .none
+        preflightStatus = ""
         FeedbackManager.shared.clear()
     }
 }

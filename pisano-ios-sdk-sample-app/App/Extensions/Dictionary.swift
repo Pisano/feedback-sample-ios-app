@@ -1,10 +1,3 @@
-//
-//  Dictionary.swift
-//  pisano-feedback
-//
-//  Created by Abdulkerim Şahin on 12.10.2022.
-//
-
 import Foundation
 
 extension Dictionary where Key == String, Value == Any {

@@ -1,10 +1,3 @@
-//
-//  AppState.swift
-//  pisano-feedback
-//
-//  Created by Abdulkerim Şahin on 20.06.2022.
-//
-
 import SwiftUI
 
 indirect enum AppState: Equatable {

@@ -1,12 +1,6 @@
-//
-//  feedbackApp.swift
-//  feedback
-//
-//  Created by YasinCetin on 28.04.2022.
-//
-
 import SwiftUI
 import PisanoFeedback
+import os.log
 
 @main
 struct feedbackApp {
@@ -35,11 +29,19 @@ struct AppView: View {
 }
 
 class AppDelegate: UIResponder, UIApplicationDelegate {
+    private let log = OSLog(subsystem: Bundle.main.bundleIdentifier ?? "PisanoSample", category: "App")
+
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         UITableView.appearance().backgroundColor = .clear
 #if DEBUG
 //        Pisano.debugMode(true)
 #endif
+
+        os_log("App didFinishLaunching. usesSecretsPlist=%{public}@ missingRequiredKeys=%{public}@",
+               log: log,
+               type: .info,
+               PisanoSDKConfig.usesSecretsPlist ? "true" : "false",
+               PisanoSDKConfig.missingRequiredKeys.joined(separator: ","))
 
         if PisanoSDKConfig.isValid {
             Pisano.boot(appId: PisanoSDKConfig.appId,
@@ -47,10 +49,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                         apiUrl: PisanoSDKConfig.apiUrl,
                         feedbackUrl: PisanoSDKConfig.feedbackUrl,
                         eventUrl: PisanoSDKConfig.eventUrl.isEmpty ? nil : PisanoSDKConfig.eventUrl) { status in
-                print(status.description)
+                os_log("Pisano.boot completed. status=%{public}@",
+                       log: self.log,
+                       type: .info,
+                       status.description)
             }
         } else {
-            print("Pisano SDK config is missing. Set PISANO_APP_ID / PISANO_ACCESS_KEY / PISANO_API_URL / PISANO_FEEDBACK_URL in Info.plist, or create PisanoSecrets.plist by copying PisanoSecrets.example.plist (do not commit secrets).")
+            os_log("Pisano SDK config is missing. Provide credentials via Info.plist keys or PisanoSecrets.plist (do not commit).",
+                   log: log,
+                   type: .error)
         }
         return true
     }

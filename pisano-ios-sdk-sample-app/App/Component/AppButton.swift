@@ -1,10 +1,3 @@
-//
-//  AppButton.swift
-//  pisano-feedback
-//
-//  Created by Abdulkerim Şahin on 22.06.2022.
-//
-
 import SwiftUI
 
 struct AppButton: View {

@@ -1,10 +1,3 @@
-//
-//  View.swift
-//  pisano-feedback
-//
-//  Created by Abdulkerim Şahin on 21.06.2022.
-//
-
 import SwiftUI
 
 extension View {
