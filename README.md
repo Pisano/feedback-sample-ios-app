@@ -26,6 +26,7 @@ SDK module/product name used by these samples: **`PisanoFeedback`** (version **1
 - [Frequently Asked Questions](#-frequently-asked-questions)
 - [Troubleshooting](#-troubleshooting)
 - [Smoke tests](#-smoke-tests)
+ 
 
 ## ✨ Features
 
@@ -114,7 +115,9 @@ Fill these keys:
 - `PISANO_FEEDBACK_URL`
 - (optional) `PISANO_EVENT_URL`
 
-> `PisanoSecrets.plist` is ignored by git. If credentials are missing, the sample apps won’t crash; they will skip `Pisano.boot(...)` and log a warning.
+> Keep `PisanoSecrets.plist` **local-only** and do not add it to source control. This repository intentionally does not ship real credentials and is configured to ignore `PisanoSecrets.plist` via `.gitignore`.
+>
+> If credentials are missing, the sample apps will **not initialize the SDK** (they skip `Pisano.boot(...)`) and log a warning, so showing the widget may not work until you add your own credentials.
 
 ## 🚀 Quick Start
 
@@ -224,11 +227,7 @@ Objective‑C:
 
 `CloseStatus` is returned by SDK callbacks.
 
-Common values (use `status.description` for logging/UI):
-
-- `InitSucces`, `InitFailed`
-- `Opened`, `Closed`, `Outside`, `SendFeedback`
-- `DisplayOnce`, `PreventMultipleFeedback`, `ChannelQuotaExceeded`
+For UI/logging, prefer using `status.description` rather than hardcoding enum case names in your app (case names can change between SDK versions).
 
 ### `Pisano.boot()`
 
