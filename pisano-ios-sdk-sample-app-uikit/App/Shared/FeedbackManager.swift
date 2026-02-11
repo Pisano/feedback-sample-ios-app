@@ -17,32 +17,33 @@ class FeedbackManager {
         }
     }
     
-    func showFlow(mode: ViewMode = .default, title: NSAttributedString? = nil, flowId: String, customer: [String: Any]? = nil, completion: ((CloseStatus) -> Void)? = nil) {
-        os_log("Pisano.show requested. mode=%{public}@ hasTitle=%{public}@ hasCustomer=%{public}@ hasFlowId=%{public}@",
+    func showFlow(mode: ViewMode = .default,
+                  title: NSAttributedString? = nil,
+                  language: String? = nil,
+                  customer: [String: Any]? = nil,
+                  payload: [String: String]? = nil,
+                  code: String? = nil,
+                  completion: ((CloseStatus) -> Void)? = nil) {
+        os_log("Pisano.show requested. mode=%{public}@ hasTitle=%{public}@ hasCustomer=%{public}@ hasPayload=%{public}@ hasCodeOverride=%{public}@",
                log: log,
                type: .info,
                String(describing: mode),
                title == nil ? "false" : "true",
                customer == nil ? "false" : "true",
-               flowId.isEmpty ? "false" : "true")
+               payload == nil ? "false" : "true",
+               code == nil ? "false" : "true")
 
-        Pisano.healthCheck { [weak self] ok in
-            os_log("Pisano.healthCheck result=%{public}@",
+        Pisano.show(mode: mode,
+                    title: title,
+                    language: language,
+                    customer: customer,
+                    payload: payload,
+                    code: code) { [weak self] status in
+            os_log("Pisano.show callback. status=%{public}@",
                    log: self?.log ?? OSLog.default,
-                   type: ok ? .info : .error,
-                   ok ? "true" : "false")
-
-            Pisano.show(mode: mode,
-                        title: title,
-                        flowId: flowId,
-                        language: "",
-                        customer: customer) { status in
-                os_log("Pisano.show callback. status=%{public}@",
-                       log: self?.log ?? OSLog.default,
-                       type: .info,
-                       status.description)
-                completion?(status)
-            }
+                   type: .info,
+                   status.description)
+            completion?(status)
         }
     }
     

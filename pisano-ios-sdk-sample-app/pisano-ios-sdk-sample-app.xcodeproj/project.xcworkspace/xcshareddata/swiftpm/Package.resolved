@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Pisano/pisano-ios.git",
       "state" : {
-        "revision" : "fc5a2e8559a1da1c869f3fc2b9bad0052c3bbb9d",
-        "version" : "1.0.16"
+        "revision" : "3b35dac5af86cd76de3a870c50e93d224d94cde9",
+        "version" : "1.0.17"
       }
     }
   ],

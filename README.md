@@ -9,10 +9,23 @@ Pisano Feedback iOS SDK helps you collect surveys and user feedback in your iOS 
 - **SwiftUI sample**: `pisano-ios-sdk-sample-app/pisano-ios-sdk-sample-app.xcodeproj`
 - **UIKit (Swift) sample**: `pisano-ios-sdk-sample-app-uikit/pisano-ios-sdk-sample-app.xcodeproj`
 
-SDK module/product name used by these samples: **`PisanoFeedback`** (version **1.0.16**)
+SDK module/product name used by these samples: **`PisanoFeedback`** (version **1.0.17**)
+
+## 🆕 What changed in 1.0.17 (important)
+
+- **`code` is required in `Pisano.boot(...)`**: This is your survey/channel code from the Pisano panel.
+- **`flowId` was removed**: Do not use `flowId` in `boot`, `show`, or `healthCheck`.
+- **Per-call `code` override (recommended for multi-survey apps)**:
+  - `Pisano.show(..., code: ...)` and `Pisano.healthCheck(..., code: ...)` can override the code **for that call**.
+  - If you don’t pass `code`, the SDK uses the `code` from `Pisano.boot(...)`.
+- **Display rate limiting (`display_rate`)**:
+  - Backend may return a `display_rate` (0–100). The SDK can skip showing the widget and return **`.displayRateLimited`** in the completion.
+- **Display once (`display_once`)**:
+  - If the survey/channel is configured to show once, subsequent calls can return **`.displayOnce`**.
 
 ## 📋 Table of Contents
 
+- [What changed in 1.0.17](#-what-changed-in-1017-important)
 - [Features](#-features)
 - [Requirements](#-requirements)
 - [Installation](#-installation)
@@ -38,10 +51,11 @@ SDK module/product name used by these samples: **`PisanoFeedback`** (version **1
 - ✅ **Customer data**: Provide `customer` and `payload`
 - ✅ **Multi-language**: Provide `language`
 - ✅ **Custom title**: Provide `NSAttributedString` title
+- ✅ **Multi-survey support**: Boot uses a default `code`; `show` / `healthCheck` can override it per call
 
 ## 📱 Requirements
 
-- **SDK**: iOS 11.0+
+- **SDK**: iOS 12.0+
 - **Sample apps (this repo)**: iOS 13.0+ (deployment target)
 - Xcode 12.0+
 
@@ -51,7 +65,7 @@ SDK module/product name used by these samples: **`PisanoFeedback`** (version **1
 
 1. In Xcode: **File → Add Package Dependencies...**
 2. Package URL: `https://github.com/Pisano/pisano-ios.git`
-3. Version rule: **Up to Next Major** → **1.0.16**
+3. Version rule: **Up to Next Major** → **1.0.17**
 4. Add product **`PisanoFeedback`** to your app target
 
 > Note: This repository’s sample apps are already configured with SPM.
@@ -59,11 +73,11 @@ SDK module/product name used by these samples: **`PisanoFeedback`** (version **1
 ### CocoaPods (optional)
 
 ```ruby
-platform :ios, '11.0'
+platform :ios, '12.0'
 use_frameworks!
 
 target 'YourApp' do
-  pod 'Pisano', '~> 1.0.16'
+  pod 'Pisano', '~> 1.0.17'
 end
 ```
 
@@ -111,13 +125,16 @@ Fill these keys:
 
 - `PISANO_APP_ID`
 - `PISANO_ACCESS_KEY`
+- `PISANO_CODE` (your survey/channel code from the Pisano panel)
 - `PISANO_API_URL`
 - `PISANO_FEEDBACK_URL`
 - (optional) `PISANO_EVENT_URL`
+- (optional, sample apps) `PISANO_LANGUAGE` (e.g. `tr`, `en`)
+- (optional, sample apps) `PISANO_DEBUG_LOGGING` (`true` / `false`)
 
 > Keep `PisanoSecrets.plist` **local-only** and do not add it to source control. This repository intentionally does not ship real credentials and is configured to ignore `PisanoSecrets.plist` via `.gitignore`.
 >
-> If credentials are missing, the sample apps will **not initialize the SDK** (they skip `Pisano.boot(...)`) and log a warning, so showing the widget may not work until you add your own credentials.
+> If credentials are missing, the sample apps will **not initialize the SDK** (they skip `Pisano.boot(...)`) and log a warning.
 
 ## 🚀 Quick Start
 
@@ -140,6 +157,7 @@ func application(_ application: UIApplication,
 
     Pisano.boot(appId: "YOUR_APP_ID",
                accessKey: "YOUR_ACCESS_KEY",
+               code: "YOUR_CODE",
                apiUrl: "https://api.pisano.co",
                feedbackUrl: "https://web.pisano.co/web_feedback",
                eventUrl: nil) { status in
@@ -157,6 +175,7 @@ Objective‑C:
 
 [Pisano bootWithAppId:@"YOUR_APP_ID"
            accessKey:@"YOUR_ACCESS_KEY"
+               code:@"YOUR_CODE"
               apiUrl:@"https://api.pisano.co"
          feedbackUrl:@"https://web.pisano.co/web_feedback"
             eventUrl:nil
@@ -164,6 +183,15 @@ Objective‑C:
     NSLog(@"%@", @(status));
 }];
 ```
+
+> ✅ **Important**: `appId` and `accessKey` are required **only for `Pisano.boot(...)`**.  
+> When you call `Pisano.show(...)` later, you don’t pass `appId` / `accessKey` again.
+
+### About `code` (boot default vs per-call override)
+
+- **`Pisano.boot(..., code: ...)`** sets your app’s **default** survey/channel `code`.
+- **`Pisano.show(..., code: ...)`** and **`Pisano.healthCheck(..., code: ...)`** can **override the code for that call**.
+- If your app can show **multiple surveys**, it’s best practice to **always pass `code` in `show(...)`** so it’s explicit which survey you want to display.
 
 ### 2) Show the feedback widget
 
@@ -184,15 +212,15 @@ import PisanoFeedback
 
 Pisano.show(mode: .bottomSheet,
            title: NSAttributedString(string: "We Value Your Feedback"),
-           flowId: "specific-flow-id",
            language: "en",
            customer: [
                "name": "John Doe",
                "email": "john@example.com",
-               "phone": "+1234567890",
+               "phoneNumber": "+1234567890",
                "externalId": "CRM-12345"
            ],
-           payload: ["source": "app", "screen": "home"]) { status in
+           payload: ["source": "app", "screen": "home"],
+           code: "ANOTHER_SURVEY_CODE") { status in
     print(status.description)
 }
 ```
@@ -204,18 +232,18 @@ Objective‑C:
 
 [Pisano showWithMode:ViewModeBottomSheet
               title:[[NSAttributedString alloc] initWithString:@"We Value Your Feedback"]
-             flowId:@"specific-flow-id"
            language:@"en"
            customer:@{
                @"name": @"John Doe",
                @"email": @"john@example.com",
-               @"phone": @"+1234567890",
+               @"phoneNumber": @"+1234567890",
                @"externalId": @"CRM-12345"
            }
             payload:@{
                @"source": @"app",
                @"screen": @"home"
            }
+               code:@"ANOTHER_SURVEY_CODE"
          completion:^(enum CloseStatus status) {
     NSLog(@"%@", @(status));
 }];
@@ -236,45 +264,49 @@ Initializes the SDK.
 Swift signature:
 
 ```swift
-Pisano.boot(appId:accessKey:apiUrl:feedbackUrl:eventUrl:completion:)
+Pisano.boot(appId:accessKey:code:apiUrl:feedbackUrl:eventUrl:completion:)
 ```
 
 Objective‑C selector:
 
 ```objc
-+ (void)bootWithAppId:accessKey:apiUrl:feedbackUrl:eventUrl:completion:;
++ (void)bootWithAppId:accessKey:code:apiUrl:feedbackUrl:eventUrl:completion:;
 ```
 
 ### `Pisano.show()`
 
 Displays the widget.
 
+`code` is optional. If you omit it, the SDK uses the `code` provided during `Pisano.boot(...)`.
+
 Swift signature:
 
 ```swift
-Pisano.show(mode:title:flowId:language:customer:payload:completion:)
+Pisano.show(mode:title:language:customer:payload:code:completion:)
 ```
 
 Objective‑C selector:
 
 ```objc
-+ (void)showWithMode:title:flowId:language:customer:payload:completion:;
++ (void)showWithMode:title:language:customer:payload:code:completion:;
 ```
 
 ### `Pisano.healthCheck()`
 
 Checks API reachability.
 
+`code` is optional. If you omit it, the SDK uses the `code` provided during `Pisano.boot(...)`.
+
 Swift signature:
 
 ```swift
-Pisano.healthCheck(flowId:language:customer:payload:completion:)
+Pisano.healthCheck(language:customer:payload:code:completion:)
 ```
 
 Objective‑C selector:
 
 ```objc
-+ (void)healthCheckWithFlowId:language:customer:payload:completion:;
++ (void)healthCheckWithLanguage:customer:payload:code:completion:;
 ```
 
 Example (Swift):
@@ -288,10 +320,10 @@ Pisano.healthCheck { ok in
 Example (Objective‑C):
 
 ```objc
-[Pisano healthCheckWithFlowId:nil
-                     language:@"en"
+[Pisano healthCheckWithLanguage:@"en"
                      customer:nil
                       payload:nil
+                         code:nil
                    completion:^(BOOL ok) {
     NSLog(@"healthCheck ok=%@", ok ? @"YES" : @"NO");
 }];

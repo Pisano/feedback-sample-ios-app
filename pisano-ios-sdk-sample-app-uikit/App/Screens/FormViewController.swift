@@ -287,7 +287,8 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
         }
 
         statusLabel.text = "Status: healthCheck..."
-        Pisano.healthCheck { [weak self] ok in
+        let language = PisanoSDKConfig.language.isEmpty ? nil : PisanoSDKConfig.language
+        Pisano.healthCheck(language: language) { [weak self] ok in
             DispatchQueue.main.async {
                 guard let self else { return }
                 if !ok {
@@ -309,13 +310,14 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
         var customer: [String: Any] = [:]
         customer.addIfNotEmpty(key: "email", value: emailField.textField.text)
         customer.addIfNotEmpty(key: "name", value: nameField.textField.text)
-        customer.addIfNotEmpty(key: "phone", value: phoneField.textField.text)
+        customer.addIfNotEmpty(key: "phoneNumber", value: phoneField.textField.text)
         customer.addIfNotEmpty(key: "externalId", value: externalIdField.textField.text)
 
+        let language = PisanoSDKConfig.language.isEmpty ? nil : PisanoSDKConfig.language
         FeedbackManager.shared.showFlow(
             mode: selectedMode(),
             title: selectedTitleAttributes(),
-            flowId: "",
+            language: language,
             customer: customer.isEmpty ? nil : customer
         ) { [weak self] status in
             DispatchQueue.main.async {
