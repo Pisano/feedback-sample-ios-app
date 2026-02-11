@@ -338,7 +338,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -e\nSRC=\"${SRCROOT}/App/Resources/PisanoSecrets.plist\"\nDST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/PisanoSecrets.plist\"\nif [ -f \"${SRC}\" ]; then\n  echo \"[Pisano] Copying PisanoSecrets.plist into app bundle\"\n  /bin/cp -f \"${SRC}\" \"${DST}\"\nelse\n  echo \"[Pisano] PisanoSecrets.plist not found at ${SRC} (OK for CI)\"\nfi\n";
+			shellScript = "set -e\nSRC=\"${SRCROOT}/App/Resources/PisanoSecrets.plist\"\nDST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/PisanoSecrets.plist\"\n# Prevent stale secrets from previous builds\n/bin/rm -f \"${DST}\" || true\nif [ -f \"${SRC}\" ]; then\n  echo \"[Pisano] Copying PisanoSecrets.plist into app bundle\"\n  /bin/cp -f \"${SRC}\" \"${DST}\"\nelse\n  echo \"[Pisano] PisanoSecrets.plist not found at ${SRC} (OK for CI)\"\nfi\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -674,7 +674,7 @@
 			repositoryURL = "https://github.com/Pisano/pisano-ios.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.16;
+				minimumVersion = 1.0.17;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

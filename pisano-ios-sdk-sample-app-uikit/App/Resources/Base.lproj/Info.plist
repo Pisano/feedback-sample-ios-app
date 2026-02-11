@@ -21,6 +21,8 @@
 	<string>https://api.pisano.co</string>
 	<key>PISANO_APP_ID</key>
 	<string></string>
+	<key>PISANO_CODE</key>
+	<string></string>
 	<key>PISANO_EVENT_URL</key>
 	<string></string>
 	<key>PISANO_FEEDBACK_URL</key>

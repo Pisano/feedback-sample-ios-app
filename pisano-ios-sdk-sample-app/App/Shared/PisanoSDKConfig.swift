@@ -3,18 +3,32 @@ import Foundation
 enum PisanoSDKConfig {
     static var appId: String { value("PISANO_APP_ID") }
     static var accessKey: String { value("PISANO_ACCESS_KEY") }
+    static var code: String { value("PISANO_CODE") }
     static var apiUrl: String { value("PISANO_API_URL") }
     static var feedbackUrl: String { value("PISANO_FEEDBACK_URL") }
     static var eventUrl: String { value("PISANO_EVENT_URL") }
+    static var language: String { value("PISANO_LANGUAGE") }
+    static var debugLogging: Bool {
+        value("PISANO_DEBUG_LOGGING").trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "true"
+    }
+
+    static var config: Config {
+        Config(accessKey: accessKey,
+               apiUrl: apiUrl,
+               appId: appId,
+               code: code,
+               eventUrl: eventUrl,
+               feedbackUrl: feedbackUrl)
+    }
 
     static var isValid: Bool {
-        !appId.isEmpty && !accessKey.isEmpty && !apiUrl.isEmpty && !feedbackUrl.isEmpty
+        !appId.isEmpty && !accessKey.isEmpty && !code.isEmpty && !apiUrl.isEmpty && !feedbackUrl.isEmpty
     }
 
     static var usesSecretsPlist: Bool { !secrets.isEmpty }
 
     static var missingRequiredKeys: [String] {
-        let required = ["PISANO_APP_ID", "PISANO_ACCESS_KEY", "PISANO_API_URL", "PISANO_FEEDBACK_URL"]
+        let required = ["PISANO_APP_ID", "PISANO_ACCESS_KEY", "PISANO_CODE", "PISANO_API_URL", "PISANO_FEEDBACK_URL"]
         return required.filter { value($0).isEmpty }
     }
 

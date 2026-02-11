@@ -26,7 +26,7 @@ class FormViewModel: ObservableObject {
         var customer: [String: Any] = [:]
         customer.addIfNotEmpty(key: "email", value: email)
         customer.addIfNotEmpty(key: "name", value: fullname)
-        customer.addIfNotEmpty(key: "phone", value: phone)
+        customer.addIfNotEmpty(key: "phoneNumber", value: phone)
         customer.addIfNotEmpty(key: "externalId", value: externalId)
         
         var title: NSAttributedString?
@@ -48,7 +48,8 @@ class FormViewModel: ObservableObject {
         guard emailValidation else { return }
 
         preflightStatus = "HealthCheck: running..."
-        Pisano.healthCheck { ok in
+        let language = PisanoSDKConfig.language.isEmpty ? nil : PisanoSDKConfig.language
+        Pisano.healthCheck(language: language) { ok in
             DispatchQueue.main.async {
                 if !ok {
                     self.preflightStatus = "HealthCheck: failed (check network/urls)"
@@ -58,7 +59,7 @@ class FormViewModel: ObservableObject {
                 self.preflightStatus = "HealthCheck: ok"
                 FeedbackManager.shared.showFlow(mode: self.selectedMode,
                                                 title: title,
-                                                flowId: "",
+                                                language: language,
                                                 customer: customer.isEmpty ? nil : customer) { sdkcallback in
                     DispatchQueue.main.async {
                         self.sdkCallback = sdkcallback
