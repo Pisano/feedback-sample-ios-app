@@ -11,21 +11,169 @@ Pisano Feedback iOS SDK helps you collect surveys and user feedback in your iOS 
 
 SDK module/product name used by these samples: **`PisanoFeedback`** (version **1.0.17**)
 
-## 🆕 What changed in 1.0.17 (important)
+## Pisano Feedback iOS SDK — v1.0.17 Release Notes
 
-- **`code` is required in `Pisano.boot(...)`**: This is your survey/channel code from the Pisano panel.
-- **`flowId` was removed**: Do not use `flowId` in `boot`, `show`, or `healthCheck`.
-- **Per-call `code` override (recommended for multi-survey apps)**:
-  - `Pisano.show(..., code: ...)` and `Pisano.healthCheck(..., code: ...)` can override the code **for that call**.
-  - If you don’t pass `code`, the SDK uses the `code` from `Pisano.boot(...)`.
-- **Display rate limiting (`display_rate`)**:
-  - Backend may return a `display_rate` (0–100). The SDK can skip showing the widget and return **`.displayRateLimited`** in the completion.
-- **Display once (`display_once`)**:
-  - If the survey/channel is configured to show once, subsequent calls can return **`.displayOnce`**.
+### Breaking Changes
+
+#### `code` is now required in SDK initialization
+
+You must pass `code` when calling `Pisano.boot(...)`. This is your survey/channel code from the Pisano panel.
+
+```swift
+import PisanoFeedback
+
+// Typically in AppDelegate / app startup
+#if DEBUG
+Pisano.debugMode(true) // optional, recommended during development
+#endif
+
+Pisano.boot(appId: "APP_ID",
+           accessKey: "ACCESS_KEY",
+           code: "YOUR_CODE", // required
+           apiUrl: "https://api.pisano.co",
+           feedbackUrl: "https://web.pisano.co/web_feedback",
+           eventUrl: nil) { status in
+    print(status.description)
+}
+```
+
+#### `flowId` parameter removed
+
+All public APIs now use `code` instead of `flowId`. Update every `show(...)` and `healthCheck(...)` call accordingly.
+
+---
+
+### API Reference (v1.0.17)
+
+#### `Pisano.show()`
+
+```swift
+Pisano.show(
+    mode: ViewMode = .default,                     // optional — .default or .bottomSheet
+    title: NSAttributedString? = nil,              // optional — toolbar title
+    language: String? = nil,                       // optional — e.g. "en", "tr"
+    customer: [String: Any]? = nil,                // optional — customer info
+    payload: [String: Any]? = nil,                 // optional — custom key-value data
+    code: String? = nil,                           // optional — overrides boot code for this call
+    completion: ((CloseStatus) -> Void)? = nil     // optional — result status
+)
+```
+
+- **`code` is optional.** If omitted (or `nil`), the SDK uses the code provided at boot via `Pisano.boot(..., code: ...)`.
+- If provided, the given `code` overrides the boot code **only for this call**.
+
+#### `Pisano.healthCheck()`
+
+```swift
+Pisano.healthCheck(
+    language: String? = nil,                       // optional
+    customer: [String: Any]? = nil,                // optional
+    payload: [String: Any]? = nil,                 // optional
+    code: String? = nil,                           // optional — overrides boot code for this call
+    completion: ((Bool) -> Void)? = nil            // optional — true if reachable
+)
+```
+
+- **`code` is optional.** Same behavior as `show()` — omit to use boot code, or pass a different code to override.
+
+---
+
+### New Features / Behavior Notes
+
+#### Per-call `code` override
+
+If your app shows multiple surveys, pass a `code` per call to be explicit:
+
+```swift
+// Uses boot code (from Pisano.boot)
+Pisano.show { status in
+    print(status.description)
+}
+
+// Overrides with a different survey code for this call
+Pisano.show(code: "ANOTHER_CODE") { status in
+    print(status.description)
+}
+```
+
+#### Display rate limiting (`display_rate`)
+
+The backend may return a `display_rate` value (0–100) for a survey. When the rate check fails, the SDK will **not** show the widget and the `completion` can receive **`.displayRateLimited`**.
+
+#### Display once (`display_once`)
+
+If a survey is configured to show only once per user, subsequent calls can return **`.displayOnce`**, and the widget will not be shown again.
+
+#### Debug mode
+
+Enable verbose SDK logging during development:
+
+```swift
+#if DEBUG
+Pisano.debugMode(true)
+#endif
+```
+
+---
+
+### Migration Guide
+
+#### 1) Update dependency
+
+- **SPM**: update package version to **1.0.17** for `https://github.com/Pisano/pisano-ios.git`
+- **CocoaPods**:
+
+```ruby
+pod 'Pisano', '~> 1.0.17'
+```
+
+#### 2) Add `code` to `Pisano.boot(...)` (required)
+
+- Before (≤ 1.0.16): `Pisano.boot(..., code: ...)` was not required / not available.
+- After (1.0.17): `code` is **required**.
+
+#### 3) Replace `flowId` with `code` in `show(...)`
+
+```swift
+// Before
+// Pisano.show(flowId: "SOME_FLOW")
+
+// After
+Pisano.show(code: "SOME_CODE")
+// or omit code to use the default from boot:
+Pisano.show()
+```
+
+#### 4) Replace `flowId` with `code` in `healthCheck(...)`
+
+```swift
+// Before
+// Pisano.healthCheck(flowId: "SOME_FLOW") { ok in ... }
+
+// After
+Pisano.healthCheck(code: "SOME_CODE") { ok in
+    print("ok=\(ok)")
+}
+// or omit code to use the default from boot:
+Pisano.healthCheck { ok in
+    print("ok=\(ok)")
+}
+```
+
+---
+
+### Summary
+
+| Method | `code` parameter | Behavior when omitted |
+|--------|------------------|-----------------------|
+| `Pisano.boot(..., code:)` | **Required** | SDK cannot initialize without it |
+| `Pisano.show(..., code:)` | Optional | Falls back to boot code |
+| `Pisano.healthCheck(..., code:)` | Optional | Falls back to boot code |
+| `Pisano.track(...)` | N/A | Uses current SDK context |
 
 ## 📋 Table of Contents
 
-- [What changed in 1.0.17](#-what-changed-in-1017-important)
+- [Pisano Feedback iOS SDK — v1.0.17 Release Notes](#pisano-feedback-ios-sdk--v1017-release-notes)
 - [Features](#-features)
 - [Requirements](#-requirements)
 - [Installation](#-installation)
