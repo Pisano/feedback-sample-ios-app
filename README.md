@@ -187,7 +187,7 @@ Pisano.healthCheck { ok in
 - [Frequently Asked Questions](#-frequently-asked-questions)
 - [Troubleshooting](#-troubleshooting)
 - [Smoke tests](#-smoke-tests)
- 
+- [Pisano platform: where to get credentials](#pisano-platform-where-to-get-credentials)
 
 ## ✨ Features
 
@@ -616,3 +616,44 @@ xcodebuild -project "pisano-ios-sdk-sample-app-uikit/pisano-ios-sdk-sample-app.x
   -destination "platform=iOS Simulator,name=iPhone 16 Pro" \
   test
 ```
+
+## Pisano platform: where to get credentials
+
+The values you use in the SDK (`appId`, `accessKey`, `code`, `apiUrl`, `feedbackUrl`) come from the **Pisano panel**. Use the steps below to create a mobile app and a mobile channel, then copy the right values into your app (e.g. `PisanoSecrets.plist` or `Info.plist`).
+
+Screenshots in this section are included in the repo under [`docs/pisano-platform/`](docs/pisano-platform/) so you can refer to them offline.
+
+### 1. App ID and Access Key (from Profile → Mobile applications)
+
+1. In the Pisano panel, go to **Profile** (or **Applications** / **Mobile applications**).
+2. Click **Create Mobile Application** (or **+ Add**).
+3. In the dialog:
+   - Enter an **Application name** (e.g. "Test App").
+   - Under **Bundle Identifiers**, click **+ Add Bundle Identifier** and add the identifiers for each platform you support (e.g. iOS: `co.pisano.yourapp`, Android: `co.pisano.yourapp`).
+4. Click **Save**.
+
+After the app is created, its card shows **App ID** and **Access Key** (with copy buttons). Use these in `Pisano.boot(appId:accessKey:...)`.
+
+![App credentials: App ID and Access Key on the app card](docs/pisano-platform/app-credentials.png)
+
+You can edit the app later (e.g. add or change bundle identifiers) via **Edit Mobile Application**.
+
+![Create Mobile Application dialog](docs/pisano-platform/create-mobile-app.png)  
+*Create Mobile Application — application name and bundle identifiers.*
+
+![Edit Mobile Application dialog](docs/pisano-platform/edit-mobile-app.png)  
+*Edit Mobile Application — application name and bundle identifiers.*
+
+### 2. Code, API URL, and Feedback URL (from Mobile Channels)
+
+1. In the Pisano panel, go to **Mobile Channels**.
+2. Create a new channel (**+ Add**) or use an existing one, and complete the required configuration.
+3. Click **Deploy** (globe icon) for that channel.
+4. In the **Publish Channel Parameters** modal you will see:
+   - **Code** — survey/channel code (e.g. `PSN-61s6u79`). Use this as `code` in `Pisano.boot(...)` and optionally in `Pisano.show(...)` / `Pisano.healthCheck(...)`.
+   - **Api Url** — base API URL (e.g. `https://api.pisano.com.tr`). Use for `apiUrl` in `Pisano.boot(...)`.
+   - **Feedback Url** — feedback widget URL (e.g. `https://web.pisano.com.tr/web_feedback`). Use for `feedbackUrl` in `Pisano.boot(...)`.
+
+The section below these three fields may show **Legacy credentials (App ID / Access Key)**; for the **new SDK structure** (v1.0.17+), use the **Code**, **Api Url**, and **Feedback Url** from the top of this modal, together with the **App ID** and **Access Key** from the mobile application (step 1).
+
+![Publish Channel Parameters: Code, Api Url, Feedback Url](docs/pisano-platform/publish-channel-params.png)
