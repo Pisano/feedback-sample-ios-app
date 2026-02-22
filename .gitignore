@@ -22,6 +22,10 @@
 PisanoSecrets.plist
 **/PisanoSecrets.plist
 
+## Internal docs (local only, not committed)
+PROJECT_IMPROVEMENTS.md
+PISANO_SDK_GUIDE.md
+
 ## Test Outputs
 test_output/
 xctest/
