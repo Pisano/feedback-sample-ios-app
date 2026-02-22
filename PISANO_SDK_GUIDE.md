@@ -425,30 +425,71 @@ PisanoSDK.INSTANCE.clearAction();
 ## React Native
 
 **SDK repository:** [github.com/Pisano/feedback-react-native-sdk](https://github.com/Pisano/feedback-react-native-sdk)
+**npm:** [`feedback-react-native-sdk`](https://www.npmjs.com/package/feedback-react-native-sdk) — latest **v0.2.10**
 **Sample app:** [github.com/Pisano/feedback-sample-react-native-app](https://github.com/Pisano/feedback-sample-react-native-app)
 
 ### Requirements
 
-- Node 18+
-- React Native 0.79+
-- iOS: Xcode 15+, CocoaPods
-- Android: JDK 17, Android SDK
+| Dependency | Minimum version |
+|------------|-----------------|
+| Node | 18+ |
+| React Native | 0.79+ |
+| iOS — Xcode | 15+ |
+| iOS — CocoaPods | Required |
+| Android — JDK | 17 |
+| Android — SDK | API 21+ |
 
 ### Installation
 
+#### npm
+
 ```bash
 npm install feedback-react-native-sdk
-# or
+```
+
+#### yarn
+
+```bash
 yarn add feedback-react-native-sdk
 ```
 
-For iOS, install native pods:
+#### iOS — install native pods
+
+After adding the npm package, install the native CocoaPods dependency:
 
 ```bash
 cd ios && pod install && cd ..
 ```
 
-For Android, no extra steps — Gradle resolves the native dependency automatically.
+If the pod install fails, try updating the repo first:
+
+```bash
+cd ios && pod repo update && pod install && cd ..
+```
+
+#### Android
+
+No extra steps — Gradle resolves the native dependency automatically when you run the app.
+
+#### Android — New Architecture (TurboModule)
+
+The package ships with the **legacy bridge** by default. To opt in to the new React Native architecture / TurboModule:
+
+1. Open `android/gradle.properties`.
+2. Add: `FeedbackReactNativeSdk_newArchEnabled=true`
+3. Follow the React Native new-arch guide (e.g. `./gradlew generateCodegenArtifactsFromSchema`).
+
+When omitted, only the legacy Java module is compiled.
+
+### Configuration
+
+Create a local config file for credentials (**do not commit this file**):
+
+```bash
+cp pisano.config.example.js pisano.config.js
+```
+
+Fill in `appId`, `accessKey`, `code`, and URLs from the Pisano panel. Add `pisano.config.js` to `.gitignore`.
 
 ### Usage
 
@@ -458,8 +499,16 @@ import {
   feedbackSDKShow,
   feedbackSDKTrack,
   feedbackSDKClear,
+  feedbackSDKDebugMode,
   feedbackSDKViewMode
 } from 'feedback-react-native-sdk';
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 0. DEBUG MODE (optional — call before boot)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+feedbackSDKDebugMode(true);   // enable verbose native logs
+
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 1. BOOT — call once at app startup
@@ -468,7 +517,7 @@ import {
 feedbackSDKBoot(
   'YOUR_APP_ID',
   'YOUR_ACCESS_KEY',
-  'YOUR_CODE',                                     // required
+  'YOUR_CODE',                                     // required — from Pisano panel
   'https://api.pisano.co',
   'https://web.pisano.co/web_feedback',
   '',                                              // eventUrl (optional)
@@ -492,7 +541,7 @@ feedbackSDKShow(
   (result) => console.log('Show:', result)
 );
 
-// With code override
+// With code override — different survey for this call
 feedbackSDKShow(
   feedbackSDKViewMode.BottomSheet,
   'We Value Your Feedback',
@@ -525,7 +574,29 @@ feedbackSDKTrack(
 feedbackSDKClear();
 ```
 
-### Show parameters
+### API Reference
+
+#### `feedbackSDKDebugMode(enabled: boolean)`
+
+Enable or disable verbose native SDK logs. Call **before** boot.
+
+#### `feedbackSDKBoot(appId, accessKey, code, apiUrl, feedbackUrl, eventUrl?, callback?)`
+
+Initialize the SDK. Call **once** at app startup. Only boot receives credentials and URLs; show/track do not accept them — they always use the values stored from boot.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `appId` | `string` | Yes | Application ID from Pisano panel |
+| `accessKey` | `string` | Yes | Access Key from Pisano panel |
+| `code` | `string` | Yes | Channel code (e.g. `PSN-xxxxx`) |
+| `apiUrl` | `string` | Yes | API base URL |
+| `feedbackUrl` | `string` | Yes | Feedback widget URL |
+| `eventUrl` | `string` | No | Event/tracking URL |
+| `callback` | `(status: string) => void` | No | Status callback |
+
+#### `feedbackSDKShow(viewMode, title, titleFontSize, code, language, customer, payload, callback)`
+
+Display the feedback widget. Uses credentials and URLs from boot.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
@@ -534,9 +605,58 @@ feedbackSDKClear();
 | `titleFontSize` | `number \| null` | No | Title font size |
 | `code` | `string \| null` | No | Override boot code for this call |
 | `language` | `string \| null` | No | Language code (`en`, `tr`, ...) |
-| `customer` | `Map<string, any>` | No | Customer properties |
+| `customer` | `Map<string, any>` | No | Customer properties (camelCase keys) |
 | `payload` | `Map<string, string>` | No | Custom key-value payload |
-| `callback` | `function` | Yes | Returns `feedbackSDKCallback` value |
+| `callback` | `(result: string) => void` | Yes | Returns `feedbackSDKCallback` value |
+
+#### `feedbackSDKTrack(event, payload?, customer?, language?, callback?)`
+
+Track a custom event. Uses credentials and URLs from boot.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `event` | `string` | Yes | Event name |
+| `payload` | `Map<string, string>` | No | Custom payload |
+| `customer` | `Map<string, string>` | No | Customer properties |
+| `language` | `string` | No | Language code |
+| `callback` | `(status: string) => void` | No | Status callback |
+
+#### `feedbackSDKClear()`
+
+Clears SDK session and cached state for the current user. No parameters.
+
+### Enums
+
+**`feedbackSDKViewMode`**
+
+| Value | Description |
+|-------|-------------|
+| `Default` | Full-screen overlay |
+| `BottomSheet` | Bottom sheet |
+
+**`feedbackSDKCallback`** — returned from `show` callback
+
+| Value | Description |
+|-------|-------------|
+| `Closed` | Widget closed by user |
+| `SendFeedback` | Feedback/survey submitted |
+| `Outside` | Dismissed by tapping outside |
+| `Opened` | Widget is visible |
+| `DisplayOnce` | Survey already shown once, won't repeat |
+| `PreventMultipleFeedback` | Multiple feedback prevented for this user |
+| `QuotaExceeded` | Channel quota exceeded |
+| `DisplayRateLimited` | Skipped due to `display_rate` throttling |
+| `SurveyPassive` | Channel is in passive state |
+| `HealthCheckFailed` | SDK initialization / health check failed |
+| `None` | No specific status |
+
+### Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| **Android:** "Unable to load script" | Run `adb reverse tcp:8081 tcp:8081` and ensure Metro is running (`npx react-native start`) |
+| **iOS:** Build fails after SDK update | `cd ios && pod install`, then clean build folder in Xcode (Cmd+Shift+K) |
+| **iOS:** Pod not found | `cd ios && pod repo update && pod install` |
 
 ---
 
