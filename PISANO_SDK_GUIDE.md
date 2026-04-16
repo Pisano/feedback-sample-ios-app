@@ -103,7 +103,7 @@ If a survey is configured to show only once per user, subsequent calls return `d
 
 ## iOS (Native — Swift / Objective-C)
 
-**SDK repository:** [github.com/Pisano/pisano-ios](https://github.com/Pisano/pisano-ios)
+**SDK repository:** [github.com/Pisano/pisano-ios](https://github.com/Pisano/pisano-ios) — recommended **`PisanoFeedback` 1.0.18**
 **Sample app:** [github.com/Pisano/feedback-sample-ios-app](https://github.com/Pisano/feedback-sample-ios-app)
 
 ### Requirements
@@ -123,7 +123,7 @@ If a survey is configured to show only once per user, subsequent calls return `d
 https://github.com/Pisano/pisano-ios.git
 ```
 
-3. Set version rule: **Up to Next Major** → **1.0.17**
+3. Set version rule: **Up to Next Major** → **1.0.18**
 4. Select the **`PisanoFeedback`** product and add it to your app target.
 
 #### CocoaPods
@@ -135,7 +135,7 @@ platform :ios, '12.0'
 use_frameworks!
 
 target 'YourApp' do
-  pod 'Pisano', '~> 1.0.17'
+  pod 'Pisano', '~> 1.0.18'
 end
 ```
 
@@ -818,7 +818,7 @@ Each platform reports status through callbacks. The table below maps the common 
 
 | Platform | SDK | Latest version | Package manager |
 |----------|-----|----------------|-----------------|
-| iOS | `PisanoFeedback` | 1.0.17 | SPM / CocoaPods |
+| iOS | `PisanoFeedback` | 1.0.18 | SPM / CocoaPods |
 | Android | `co.pisano:feedback` | 1.3.28 | Gradle (Maven Central) |
 | React Native | `feedback-react-native-sdk` | 0.2.10 | npm / yarn |
 | Flutter | `feedback_flutter_sdk` | 0.0.17 | Git dependency (pubspec) |

@@ -9,11 +9,23 @@ Pisano Feedback iOS SDK helps you collect surveys and user feedback in your iOS 
 - **SwiftUI sample**: `pisano-ios-sdk-sample-app/pisano-ios-sdk-sample-app.xcodeproj`
 - **UIKit (Swift) sample**: `pisano-ios-sdk-sample-app-uikit/pisano-ios-sdk-sample-app.xcodeproj`
 
-SDK module/product name used by these samples: **`PisanoFeedback`** (version **1.0.17**)
+SDK module/product name used by these samples: **`PisanoFeedback`** (version **1.0.18**)
 
-## Pisano Feedback iOS SDK — v1.0.17 Release Notes
+## Pisano Feedback iOS SDK — v1.0.18 Release Notes
 
-### Breaking Changes
+### What's new in v1.0.18
+
+- **Sample alignment:** This repository’s Xcode projects resolve **`PisanoFeedback` 1.0.18** via Swift Package Manager (`Package.resolved`).
+- **For integrators on v1.0.17:** Treat **1.0.18** as a **maintenance / patch-level upgrade** on top of the v1.0.17 API: same `Pisano.boot` (required `code`), optional per-call `code` on `show` / `healthCheck`, **no `flowId`**, same `CloseStatus` behaviour for display rate / display once / passive survey paths. **Bump the dependency and rebuild**—no Swift API migration is required when you are already on **1.0.17**.
+- **CocoaPods:** use `pod 'Pisano', '~> 1.0.18'`. If **1.0.18** is not yet listed on [cocoapods.org/pods/Pisano](https://cocoapods.org/pods/Pisano), use the latest version shown there or install via **SPM** until the pod is published.
+
+Framework-level commit details: [Pisano/pisano-ios](https://github.com/Pisano/pisano-ios) tags.
+
+---
+
+### Breaking changes (only when migrating from **≤ v1.0.16**)
+
+The following was introduced in **v1.0.17** and **still applies in v1.0.18**.
 
 #### `code` is now required in SDK initialization
 
@@ -43,7 +55,7 @@ All public APIs now use `code` instead of `flowId`. Update every `show(...)` and
 
 ---
 
-### API Reference (v1.0.17)
+### API Reference (v1.0.18)
 
 #### `Pisano.show()`
 
@@ -120,17 +132,17 @@ Pisano.debugMode(true)
 
 #### 1) Update dependency
 
-- **SPM**: update package version to **1.0.17** for `https://github.com/Pisano/pisano-ios.git`
+- **SPM**: set version rule to **1.0.18** (or **Up to Next Major** from **1.0.18**) for `https://github.com/Pisano/pisano-ios.git`
 - **CocoaPods**:
 
 ```ruby
-pod 'Pisano', '~> 1.0.17'
+pod 'Pisano', '~> 1.0.18'
 ```
 
 #### 2) Add `code` to `Pisano.boot(...)` (required)
 
 - Before (≤ 1.0.16): `Pisano.boot(..., code: ...)` was not required / not available.
-- After (1.0.17): `code` is **required**.
+- After (v1.0.17+): `code` is **required**.
 
 #### 3) Replace `flowId` with `code` in `show(...)`
 
@@ -173,7 +185,7 @@ Pisano.healthCheck { ok in
 
 ## 📋 Table of Contents
 
-- [Pisano Feedback iOS SDK — v1.0.17 Release Notes](#pisano-feedback-ios-sdk--v1017-release-notes)
+- [Pisano Feedback iOS SDK — v1.0.18 Release Notes](#pisano-feedback-ios-sdk--v1018-release-notes)
 - [Features](#-features)
 - [Requirements](#-requirements)
 - [Installation](#-installation)
@@ -213,7 +225,7 @@ Pisano.healthCheck { ok in
 
 1. In Xcode: **File → Add Package Dependencies...**
 2. Package URL: `https://github.com/Pisano/pisano-ios.git`
-3. Version rule: **Up to Next Major** → **1.0.17**
+3. Version rule: **Up to Next Major** → **1.0.18**
 4. Add product **`PisanoFeedback`** to your app target
 
 > Note: This repository’s sample apps are already configured with SPM.
@@ -225,7 +237,7 @@ platform :ios, '12.0'
 use_frameworks!
 
 target 'YourApp' do
-  pod 'Pisano', '~> 1.0.17'
+  pod 'Pisano', '~> 1.0.18'
 end
 ```
 
