@@ -71,8 +71,9 @@ Pisano.show(
 )
 ```
 
-- **`code` is optional.** If omitted (or `nil`), the SDK uses the code provided at boot via `Pisano.boot(..., code: ...)`.
-- If provided, the given `code` overrides the boot code **only for this call**.
+- **`code` is optional on `show`.** The `code` you pass to **`Pisano.boot(..., code:)`** is saved as the **default** survey/channel for the SDK session.
+- If you **do not** pass `code` to `show` (or you pass **`nil`**), the SDK **always** uses the **`code` from boot**—not some other implicit value.
+- If you pass a **non-`nil`** `code` to `show`, that value **overrides the boot `code` for this call only**; the next `show` without `code` goes back to the boot default.
 
 #### `Pisano.healthCheck()`
 
@@ -86,7 +87,7 @@ Pisano.healthCheck(
 )
 ```
 
-- **`code` is optional.** Same behavior as `show()` — omit to use boot code, or pass a different code to override.
+- **`code` is optional on `healthCheck`.** Same rule as `show`: **omit or `nil` → use the `code` from `Pisano.boot`**; **non-`nil` → override for this call only**.
 
 ---
 
@@ -97,12 +98,12 @@ Pisano.healthCheck(
 If your app shows multiple surveys, pass a `code` per call to be explicit:
 
 ```swift
-// Uses boot code (from Pisano.boot)
-Pisano.show { status in
+// Uses boot code (from Pisano.boot) — `code` is optional; pass nil explicitly
+Pisano.show(code: nil) { status in
     print(status.description)
 }
 
-// Overrides with a different survey code for this call
+// Overrides with a different survey code for this call only
 Pisano.show(code: "ANOTHER_CODE") { status in
     print(status.description)
 }
@@ -150,10 +151,14 @@ pod 'Pisano', '~> 1.0.18'
 // Before
 // Pisano.show(flowId: "SOME_FLOW")
 
-// After
-Pisano.show(code: "SOME_CODE")
-// or omit code to use the default from boot:
-Pisano.show()
+// After — explicit survey code for this call
+Pisano.show(code: "SOME_CODE") { status in
+    print(status.description)
+}
+// or keep the default from boot (`code` is optional — nil means “use boot code”):
+Pisano.show(code: nil) { status in
+    print(status.description)
+}
 ```
 
 #### 4) Replace `flowId` with `code` in `healthCheck(...)`
@@ -176,11 +181,11 @@ Pisano.healthCheck { ok in
 
 ### Summary
 
-| Method | `code` parameter | Behavior when omitted |
-|--------|------------------|-----------------------|
-| `Pisano.boot(..., code:)` | **Required** | SDK cannot initialize without it |
-| `Pisano.show(..., code:)` | Optional | Falls back to boot code |
-| `Pisano.healthCheck(..., code:)` | Optional | Falls back to boot code |
+| Method | `code` parameter | If you omit `code` (or pass `nil`) |
+|--------|------------------|-------------------------------------|
+| `Pisano.boot(..., code:)` | **Required** | N/A — boot cannot run without it |
+| `Pisano.show(..., code:)` | Optional | **Always** uses the **`code` from `Pisano.boot`** (same session) |
+| `Pisano.healthCheck(..., code:)` | Optional | **Always** uses the **`code` from `Pisano.boot`** |
 | `Pisano.track(...)` | N/A | Uses current SDK context |
 
 ## 📋 Table of Contents
@@ -349,9 +354,11 @@ Objective‑C:
 
 ### About `code` (boot default vs per-call override)
 
-- **`Pisano.boot(..., code: ...)`** sets your app’s **default** survey/channel `code`.
-- **`Pisano.show(..., code: ...)`** and **`Pisano.healthCheck(..., code: ...)`** can **override the code for that call**.
-- If your app can show **multiple surveys**, it’s best practice to **always pass `code` in `show(...)`** so it’s explicit which survey you want to display.
+**Single rule to remember:** whatever **`code`** you set in **`Pisano.boot(..., code:)`** is the **default** for the whole app session. On **`Pisano.show`** and **`Pisano.healthCheck`**, if you **leave `code` out or pass `nil`**, the SDK **always** uses that **boot** `code`. It does **not** invent another channel code for you.
+
+- **`Pisano.boot(..., code: ...)`** — **required**; this value is the **default** until you boot again with a different configuration.
+- **`Pisano.show(..., code: ...)`** / **`Pisano.healthCheck(..., code: ...)`** — **optional**; **`nil`** (or omitted when the API allows) means **“use the boot `code`”**. A **non-`nil`** string means **“use this survey/channel for this call only”** (override).
+- If your app can show **multiple surveys**, it’s best practice to **pass an explicit `code` in each `show(...)`** so it’s obvious which survey each screen opens.
 
 ### 2) Show the feedback widget
 
@@ -360,7 +367,8 @@ Basic:
 ```swift
 import PisanoFeedback
 
-Pisano.show { status in
+// `code` is optional — nil uses the survey/channel code from `Pisano.boot(..., code:)`
+Pisano.show(code: nil) { status in
     print(status.description)
 }
 ```
@@ -380,16 +388,38 @@ Pisano.show(mode: .bottomSheet,
                "externalId": "CRM-12345"
            ],
            payload: ["source": "app", "screen": "home"],
-           code: "ANOTHER_SURVEY_CODE") { status in
+           code: "ANOTHER_SURVEY_CODE") { status in  // optional override; use nil for boot default
     print(status.description)
 }
 ```
 
-Objective‑C:
+Objective‑C (boot default — explicit `code: nil`):
 
 ```objc
 #import <PisanoFeedback/PisanoFeedback-Swift.h>
 
+[Pisano showWithMode:ViewModeBottomSheet
+              title:[[NSAttributedString alloc] initWithString:@"We Value Your Feedback"]
+           language:@"en"
+           customer:@{
+               @"name": @"John Doe",
+               @"email": @"john@example.com",
+               @"phoneNumber": @"+1234567890",
+               @"externalId": @"CRM-12345"
+           }
+            payload:@{
+               @"source": @"app",
+               @"screen": @"home"
+           }
+               code:nil
+         completion:^(enum CloseStatus status) {
+    NSLog(@"%@", @(status));
+}];
+```
+
+Objective‑C (per-call override):
+
+```objc
 [Pisano showWithMode:ViewModeBottomSheet
               title:[[NSAttributedString alloc] initWithString:@"We Value Your Feedback"]
            language:@"en"
@@ -437,12 +467,20 @@ Objective‑C selector:
 
 Displays the widget.
 
-`code` is optional. If you omit it, the SDK uses the `code` provided during `Pisano.boot(...)`.
+`code` is optional on `show`. **If you omit it or pass `nil`, the SDK always uses the exact `code` you passed in `Pisano.boot(..., code:)`** (the boot default). Pass a non-`nil` string only when you want a **one-off override** for that call.
 
 Swift signature:
 
 ```swift
 Pisano.show(mode:title:language:customer:payload:code:completion:)
+```
+
+Minimal call (explicit optional `code`):
+
+```swift
+Pisano.show(code: nil) { status in
+    print(status.description)
+}
 ```
 
 Objective‑C selector:
@@ -455,7 +493,7 @@ Objective‑C selector:
 
 Checks API reachability.
 
-`code` is optional. If you omit it, the SDK uses the `code` provided during `Pisano.boot(...)`.
+`code` is optional on `healthCheck`. **Omit or `nil` → use the `code` from `Pisano.boot`**; non-`nil` → override for this check only.
 
 Swift signature:
 
@@ -543,7 +581,8 @@ final class ViewController: UIViewController {
     @IBAction func showFeedback(_ sender: Any) {
         Pisano.show(mode: .bottomSheet,
                    language: "en",
-                   customer: ["externalId": "USER-123"]) { status in
+                   customer: ["externalId": "USER-123"],
+                   code: nil) { status in
             print(status.description)
         }
     }
@@ -560,7 +599,8 @@ struct ContentView: View {
     var body: some View {
         Button("Show Feedback") {
             Pisano.show(mode: .bottomSheet,
-                       customer: ["email": "user@example.com"]) { _ in }
+                       customer: ["email": "user@example.com"],
+                       code: nil) { _ in }
         }
     }
 }
