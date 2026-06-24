@@ -1,4 +1,4 @@
-import SwiftUI
+import Foundation
 import PisanoFeedback
 import os.log
 
@@ -23,11 +23,13 @@ class FeedbackManager {
                   customer: [String: Any]? = nil,
                   payload: [String: String]? = nil,
                   code: String? = nil,
+                  dismissOnDrag: Bool = false,
                   completion: ((CloseStatus) -> Void)? = nil) {
-        os_log("Pisano.show requested. mode=%{public}@ hasTitle=%{public}@ hasCustomer=%{public}@ hasPayload=%{public}@ hasCodeOverride=%{public}@",
+        os_log("Pisano.show requested. mode=%{public}@ dismissOnDrag=%{public}@ hasTitle=%{public}@ hasCustomer=%{public}@ hasPayload=%{public}@ hasCodeOverride=%{public}@",
                log: log,
                type: .info,
                String(describing: mode),
+               dismissOnDrag ? "true" : "false",
                title == nil ? "false" : "true",
                customer == nil ? "false" : "true",
                payload == nil ? "false" : "true",
@@ -38,7 +40,8 @@ class FeedbackManager {
                     language: language,
                     customer: customer,
                     payload: payload,
-                    code: code) { [weak self] status in
+                    code: code,
+                    dismissOnDrag: dismissOnDrag) { [weak self] status in
             os_log("Pisano.show callback. status=%{public}@",
                    log: self?.log ?? OSLog.default,
                    type: .info,

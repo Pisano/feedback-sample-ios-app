@@ -4,12 +4,27 @@ Pisano Feedback iOS SDK helps you collect surveys and user feedback in your iOS 
 
 > This repository is a **sample app repo**. The **SDK source code is not in this repo**.
 
+**Primary sample for most production-style apps:** use the **UIKit** project **`pisano-ios-sdk-sample-app-uikit`** (App lifecycle, `UIViewController`, storyboard/XML-style UI in Swift). The **SwiftUI** project is an equivalent alternative with the same SDK calls.
+
 ## ✅ Sample apps in this repo
 
+- **UIKit (Swift) — recommended baseline**: `pisano-ios-sdk-sample-app-uikit/pisano-ios-sdk-sample-app.xcodeproj`
 - **SwiftUI sample**: `pisano-ios-sdk-sample-app/pisano-ios-sdk-sample-app.xcodeproj`
-- **UIKit (Swift) sample**: `pisano-ios-sdk-sample-app-uikit/pisano-ios-sdk-sample-app.xcodeproj`
 
 SDK module/product name used by these samples: **`PisanoFeedback`** (version **1.0.18**)
+
+## MT-41 — Bottom sheet `dismissOnDrag` (sample UI)
+
+Both sample projects include **Dismiss on drag (Off/On)** on the form screen:
+
+| Project | UI control |
+|---------|------------|
+| `pisano-ios-sdk-sample-app-uikit` | Segmented control |
+| `pisano-ios-sdk-sample-app` (SwiftUI) | Toggle |
+
+Value is forwarded via `FeedbackManager.showFlow(..., dismissOnDrag:)` → `Pisano.show(...)`.
+
+Details: [RELEASE_NOTES_MT-41.md](./RELEASE_NOTES_MT-41.md)
 
 ## Pisano Feedback iOS SDK — v1.0.18 Release Notes
 
@@ -67,9 +82,12 @@ Pisano.show(
     customer: [String: Any]? = nil,                // optional — customer info
     payload: [String: Any]? = nil,                 // optional — custom key-value data
     code: String? = nil,                           // optional — overrides boot code for this call
+    dismissOnDrag: Bool = false,                   // optional — swipe-down dismiss when .bottomSheet
     completion: ((CloseStatus) -> Void)? = nil     // optional — result status
 )
 ```
+
+- **`dismissOnDrag`:** Default `false`. When `true` and `mode` is `.bottomSheet`, swipe-down dismiss is enabled.
 
 - **`code` is optional on `show`.** The `code` you pass to **`Pisano.boot(..., code:)`** is saved as the **default** survey/channel for the SDK session.
 - If you **do not** pass `code` to `show` (or you pass **`nil`**), the SDK **always** uses the **`code` from boot**—not some other implicit value.
@@ -209,7 +227,7 @@ Pisano.healthCheck { ok in
 ## ✨ Features
 
 - ✅ **Feedback widget (web-based UI)**: Widget UI is rendered via web content through the SDK
-- ✅ **SwiftUI + UIKit samples**: Same SDK flow implemented in both UI frameworks
+- ✅ **SwiftUI + UIKit samples**: Same SDK flow — **follow the UIKit app** (`pisano-ios-sdk-sample-app-uikit`) unless you explicitly target SwiftUI
 - ✅ **Objective‑C compatibility**
 - ✅ **View modes**: Full screen (`.default`) and bottom sheet (`.bottomSheet`)
 - ✅ **Health check**: Preflight API reachability
@@ -250,25 +268,25 @@ end
 
 ### Open in Xcode
 
+- **UIKit (default path):** open `pisano-ios-sdk-sample-app-uikit/pisano-ios-sdk-sample-app.xcodeproj`
 - SwiftUI: open `pisano-ios-sdk-sample-app/pisano-ios-sdk-sample-app.xcodeproj`
-- UIKit: open `pisano-ios-sdk-sample-app-uikit/pisano-ios-sdk-sample-app.xcodeproj`
 
 ### Build from CLI (optional)
 
-SwiftUI:
+UIKit:
 
 ```bash
-xcodebuild -project "pisano-ios-sdk-sample-app/pisano-ios-sdk-sample-app.xcodeproj" \
+xcodebuild -project "pisano-ios-sdk-sample-app-uikit/pisano-ios-sdk-sample-app.xcodeproj" \
   -scheme "pisano-feedback" \
   -configuration Debug \
   -destination "platform=iOS Simulator,name=iPhone 16 Pro" \
   build
 ```
 
-UIKit:
+SwiftUI:
 
 ```bash
-xcodebuild -project "pisano-ios-sdk-sample-app-uikit/pisano-ios-sdk-sample-app.xcodeproj" \
+xcodebuild -project "pisano-ios-sdk-sample-app/pisano-ios-sdk-sample-app.xcodeproj" \
   -scheme "pisano-feedback" \
   -configuration Debug \
   -destination "platform=iOS Simulator,name=iPhone 16 Pro" \
@@ -281,10 +299,10 @@ This repo **does not include any API keys**.
 
 To run locally, create `PisanoSecrets.plist` next to the provided example file and fill your own values:
 
-- **SwiftUI sample**:
-  - copy `pisano-ios-sdk-sample-app/App/Resources/PisanoSecrets.example.plist` → `PisanoSecrets.plist`
-- **UIKit sample**:
+- **UIKit sample (recommended):**
   - copy `pisano-ios-sdk-sample-app-uikit/App/Resources/PisanoSecrets.example.plist` → `PisanoSecrets.plist`
+- **SwiftUI sample:**
+  - copy `pisano-ios-sdk-sample-app/App/Resources/PisanoSecrets.example.plist` → `PisanoSecrets.plist`
 
 Fill these keys:
 
@@ -649,20 +667,20 @@ Both sample apps include an `XCTest` smoke test that runs:
 
 If credentials are missing, the test will **skip** (so CI won’t fail).
 
-SwiftUI:
+UIKit:
 
 ```bash
-xcodebuild -project "pisano-ios-sdk-sample-app/pisano-ios-sdk-sample-app.xcodeproj" \
+xcodebuild -project "pisano-ios-sdk-sample-app-uikit/pisano-ios-sdk-sample-app.xcodeproj" \
   -scheme "pisano-feedback" \
   -configuration Debug \
   -destination "platform=iOS Simulator,name=iPhone 16 Pro" \
   test
 ```
 
-UIKit:
+SwiftUI:
 
 ```bash
-xcodebuild -project "pisano-ios-sdk-sample-app-uikit/pisano-ios-sdk-sample-app.xcodeproj" \
+xcodebuild -project "pisano-ios-sdk-sample-app/pisano-ios-sdk-sample-app.xcodeproj" \
   -scheme "pisano-feedback" \
   -configuration Debug \
   -destination "platform=iOS Simulator,name=iPhone 16 Pro" \

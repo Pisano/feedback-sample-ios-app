@@ -104,7 +104,7 @@ If a survey is configured to show only once per user, subsequent calls return `d
 ## iOS (Native — Swift / Objective-C)
 
 **SDK repository:** [github.com/Pisano/pisano-ios](https://github.com/Pisano/pisano-ios) — recommended **`PisanoFeedback` 1.0.18**
-**Sample app:** [github.com/Pisano/feedback-sample-ios-app](https://github.com/Pisano/feedback-sample-ios-app)
+**Sample app:** [github.com/Pisano/feedback-sample-ios-app](https://github.com/Pisano/feedback-sample-ios-app) — open **`pisano-ios-sdk-sample-app-uikit`** for the **recommended UIKit** reference; a SwiftUI sample is included too.
 
 ### Requirements
 
@@ -191,7 +191,8 @@ Pisano.show(
         "externalId": "CRM-12345"
     ],
     payload: ["source": "app", "screen": "home"],                // optional
-    code: "ANOTHER_SURVEY_CODE"                                  // optional override
+    code: "ANOTHER_SURVEY_CODE",                                 // optional override
+    dismissOnDrag: false                                         // optional — swipe dismiss when .bottomSheet
 ) { status in
     print("Show status: \(status.description)")
 }
@@ -289,7 +290,7 @@ In your **app-level** `build.gradle`:
 
 ```gradle
 dependencies {
-    implementation 'co.pisano:feedback:1.3.28'
+    implementation 'co.pisano:feedback:1.3.31'
 }
 ```
 
@@ -361,7 +362,8 @@ PisanoSDK.show(
         phoneNumber = "+1234567890",
         externalId = "CRM-12345"
     ),
-    code = "ANOTHER_SURVEY_CODE"   // optional override
+    code = "ANOTHER_SURVEY_CODE",   // optional override
+    dismissOnDrag = false           // optional — swipe dismiss when BOTTOM_SHEET
 )
 
 
@@ -425,7 +427,7 @@ PisanoSDK.INSTANCE.clearAction();
 ## React Native
 
 **SDK repository:** [github.com/Pisano/feedback-react-native-sdk](https://github.com/Pisano/feedback-react-native-sdk)
-**npm:** [`feedback-react-native-sdk`](https://www.npmjs.com/package/feedback-react-native-sdk) — latest **v0.2.10**
+**npm:** [`feedback-react-native-sdk`](https://www.npmjs.com/package/feedback-react-native-sdk) — latest **v0.2.15**
 **Sample app:** [github.com/Pisano/feedback-sample-react-native-app](https://github.com/Pisano/feedback-sample-react-native-app)
 
 ### Requirements
@@ -538,19 +540,21 @@ feedbackSDKShow(
   'en',                                            // language
   new Map([['email', 'user@example.com']]),         // customer
   new Map([['source', 'app']]),                     // payload
-  (result) => console.log('Show:', result)
+  (result) => console.log('Show:', result),
+  false                                            // dismissOnDrag (optional)
 );
 
-// With code override — different survey for this call
+// Bottom sheet with drag-to-dismiss
 feedbackSDKShow(
   feedbackSDKViewMode.BottomSheet,
   'We Value Your Feedback',
   16,
-  'ANOTHER_SURVEY_CODE',                           // override boot code
+  null,
   'en',
-  new Map([['externalId', 'USER-123'], ['phoneNumber', '+1234567890']]),
-  new Map([['source', 'app'], ['screen', 'home']]),
-  (result) => console.log('Show:', result)
+  new Map([['externalId', 'USER-123']]),
+  new Map(),
+  (result) => console.log('Show:', result),
+  true                                             // dismissOnDrag
 );
 
 
@@ -594,7 +598,7 @@ Initialize the SDK. Call **once** at app startup. Only boot receives credentials
 | `eventUrl` | `string` | No | Event/tracking URL |
 | `callback` | `(status: string) => void` | No | Status callback |
 
-#### `feedbackSDKShow(viewMode, title, titleFontSize, code, language, customer, payload, callback)`
+#### `feedbackSDKShow(viewMode, title, titleFontSize, code, language, customer, payload, callback, dismissOnDrag?)`
 
 Display the feedback widget. Uses credentials and URLs from boot.
 
@@ -608,6 +612,7 @@ Display the feedback widget. Uses credentials and URLs from boot.
 | `customer` | `Map<string, any>` | No | Customer properties (camelCase keys) |
 | `payload` | `Map<string, string>` | No | Custom key-value payload |
 | `callback` | `(result: string) => void` | Yes | Returns `feedbackSDKCallback` value |
+| `dismissOnDrag` | `boolean` | No | Default `false`. When `true` with `BottomSheet`, swipe-down dismiss |
 
 #### `feedbackSDKTrack(event, payload?, customer?, language?, callback?)`
 
@@ -819,8 +824,8 @@ Each platform reports status through callbacks. The table below maps the common 
 | Platform | SDK | Latest version | Package manager |
 |----------|-----|----------------|-----------------|
 | iOS | `PisanoFeedback` | 1.0.18 | SPM / CocoaPods |
-| Android | `co.pisano:feedback` | 1.3.28 | Gradle (Maven Central) |
-| React Native | `feedback-react-native-sdk` | 0.2.10 | npm / yarn |
+| Android | `co.pisano:feedback` | 1.3.31 | Gradle (Maven Central) |
+| React Native | `feedback-react-native-sdk` | 0.2.15 | npm / yarn |
 | Flutter | `feedback_flutter_sdk` | 0.0.17 | Git dependency (pubspec) |
 
 ### Security reminders
