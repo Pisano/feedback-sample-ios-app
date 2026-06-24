@@ -73,6 +73,9 @@ struct FormView: View {
                         }
                     }
                 }
+
+                Text("Dismiss on drag (bottom sheet)")
+                Toggle("Allow swipe-down dismiss", isOn: $viewModel.dismissOnDrag)
                 
                 Text(.actionStatus)
                 Text(viewModel.sdkCallback.description)

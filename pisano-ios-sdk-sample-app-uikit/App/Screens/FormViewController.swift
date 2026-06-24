@@ -16,6 +16,7 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
     private let titleField = CustomTextField(title: "Custom Title", contentType: nil)
 
     private let modeControl = UISegmentedControl(items: ["Default", "BottomSheet"])
+    private let dismissOnDragControl = UISegmentedControl(items: ["Drag off", "Drag on"])
     private let fontControl = UISegmentedControl(items: ["Title", "Body"])
 
     private let statusLabel = UILabel()
@@ -130,6 +131,9 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
 
         addLabeledControl("View Mode", control: modeControl)
         modeControl.selectedSegmentIndex = 0
+
+        addLabeledControl("Dismiss on drag (bottom sheet)", control: dismissOnDragControl)
+        dismissOnDragControl.selectedSegmentIndex = 0
 
         addTitleColorPicker()
 
@@ -260,6 +264,10 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
         }
     }
 
+    private func selectedDismissOnDrag() -> Bool {
+        dismissOnDragControl.selectedSegmentIndex == 1
+    }
+
     private func selectedMode() -> ViewMode {
         modeControl.selectedSegmentIndex == 1 ? .bottomSheet : .default
     }
@@ -314,14 +322,16 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
         customer.addIfNotEmpty(key: "externalId", value: externalIdField.textField.text)
 
         let language = PisanoSDKConfig.language.isEmpty ? nil : PisanoSDKConfig.language
+        let dismissOnDrag = selectedDismissOnDrag()
         FeedbackManager.shared.showFlow(
             mode: selectedMode(),
             title: selectedTitleAttributes(),
             language: language,
-            customer: customer.isEmpty ? nil : customer
+            customer: customer.isEmpty ? nil : customer,
+            dismissOnDrag: dismissOnDrag
         ) { [weak self] status in
             DispatchQueue.main.async {
-                self?.statusLabel.text = "Status: \(status.description)"
+                self?.statusLabel.text = "Status: \(status.description) (dismissOnDrag=\(dismissOnDrag))"
             }
         }
     }

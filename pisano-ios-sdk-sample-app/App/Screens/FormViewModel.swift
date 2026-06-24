@@ -12,6 +12,7 @@ class FormViewModel: ObservableObject {
     @Published var customTitle: String = ""
     @Published var selectedColor: Color?
     @Published var selectedMode: ViewMode = .default
+    @Published var dismissOnDrag = false
     @Published var selectedFont: UIFont = .preferredFont(forTextStyle: .title1)
     @Published var showSelectFont = false
     @Published var preflightStatus: String = ""
@@ -60,7 +61,8 @@ class FormViewModel: ObservableObject {
                 FeedbackManager.shared.showFlow(mode: self.selectedMode,
                                                 title: title,
                                                 language: language,
-                                                customer: customer.isEmpty ? nil : customer) { sdkcallback in
+                                                customer: customer.isEmpty ? nil : customer,
+                                                dismissOnDrag: self.dismissOnDrag) { sdkcallback in
                     DispatchQueue.main.async {
                         self.sdkCallback = sdkcallback
                     }
@@ -72,6 +74,7 @@ class FormViewModel: ObservableObject {
     func clear() {
         sdkCallback = .none
         preflightStatus = ""
+        dismissOnDrag = false
         FeedbackManager.shared.clear()
     }
 }
