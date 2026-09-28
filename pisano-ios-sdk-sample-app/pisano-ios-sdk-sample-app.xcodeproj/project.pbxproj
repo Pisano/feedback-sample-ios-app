@@ -738,7 +738,7 @@
 			repositoryURL = "https://github.com/Pisano/pisano-ios.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.21;
+				minimumVersion = 1.1.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

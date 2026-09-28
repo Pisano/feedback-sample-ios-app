@@ -11,7 +11,7 @@ Pisano Feedback iOS SDK helps you collect surveys and user feedback in your iOS 
 - **UIKit (Swift) — recommended baseline**: `pisano-ios-sdk-sample-app-uikit/pisano-ios-sdk-sample-app.xcodeproj`
 - **SwiftUI sample**: `pisano-ios-sdk-sample-app/pisano-ios-sdk-sample-app.xcodeproj`
 
-SDK module/product name used by these samples: **`PisanoFeedback`** (version **1.0.21**)
+SDK module/product name used by these samples: **`PisanoFeedback`** (version **1.1.0**)
 
 ## MT-41 — Bottom sheet `dismissOnDrag` (sample UI)
 
@@ -25,6 +25,18 @@ Both sample projects include **Dismiss on drag (Off/On)** on the form screen:
 Value is forwarded via `FeedbackManager.showFlow(..., dismissOnDrag:)` → `Pisano.show(...)`.
 
 Details: [RELEASE_NOTES_1.0.21.md](./RELEASE_NOTES_1.0.21.md)
+
+## Pisano Feedback iOS SDK — v1.1.0 Release Notes
+
+### What's new in v1.1.0
+
+- **Non-blocking:** `boot`, `healthCheck`, `show` and `track` never block the calling thread (before, they waited for the network round-trip and froze the UI when called on the main thread). Every `completion` is called asynchronously on the main thread.
+- **Timeout and cancellation:** `Pisano.requestTimeout` (default 60s); `boot`, `healthCheck`, `show` and `track` return a `PisanoTask` whose `cancel()` ends the call.
+- **Logout / user or tenant switch:** `Pisano.clear()` cancels running calls, closes an open survey and removes all SDK data of the session (credentials, caches, cookies, survey web data). Full list: [Logout and User / Tenant Switch](#-logout-and-user--tenant-switch).
+- **Security / privacy:** credentials in the Keychain, no cached API responses, isolated cookies and survey web data, privacy manifest included.
+- **Swift 6:** public API is clean under strict concurrency.
+- **Sample apps:** resolve **`PisanoFeedback` 1.1.0**; deployment target **iOS 15.0** so they build with current Xcode (the SDK itself still supports **iOS 12.0+**).
+- **Compatibility:** existing Swift / Objective-C code compiles unchanged. Behaviour changes and known limitations: [RELEASE_NOTES_1.1.0.md](./RELEASE_NOTES_1.1.0.md).
 
 ## Pisano Feedback iOS SDK — v1.0.21 Release Notes
 
@@ -223,7 +235,7 @@ Pisano.healthCheck { ok in
 
 ## 📋 Table of Contents
 
-- [Pisano Feedback iOS SDK — v1.0.20 Release Notes](#pisano-feedback-ios-sdk--v1018-release-notes)
+- [Pisano Feedback iOS SDK — v1.1.0 Release Notes](#pisano-feedback-ios-sdk--v110-release-notes)
 - [Features](#-features)
 - [Requirements](#-requirements)
 - [Installation](#-installation)
@@ -263,7 +275,7 @@ Pisano.healthCheck { ok in
 
 1. In Xcode: **File → Add Package Dependencies...**
 2. Package URL: `https://github.com/Pisano/pisano-ios.git`
-3. Version rule: **Up to Next Major** → **1.0.21**
+3. Version rule: **Up to Next Major** → **1.1.0**
 4. Add product **`PisanoFeedback`** to your app target
 
 > Note: This repository’s sample apps are already configured with SPM.
@@ -275,7 +287,7 @@ platform :ios, '12.0'
 use_frameworks!
 
 target 'YourApp' do
-  pod 'Pisano', '~> 1.0.21'
+  pod 'Pisano', '~> 1.1'
 end
 ```
 
@@ -493,7 +505,7 @@ Pisano.boot(appId:accessKey:code:apiUrl:feedbackUrl:eventUrl:completion:)
 Objective‑C selector:
 
 ```objc
-+ (void)bootWithAppId:accessKey:code:apiUrl:feedbackUrl:eventUrl:completion:;
++ (PisanoTask *)bootWithAppId:accessKey:code:apiUrl:feedbackUrl:eventUrl:completion:;   // returns a cancellable task (1.1.0+)
 ```
 
 ### `Pisano.show()`
@@ -519,7 +531,7 @@ Pisano.show(code: nil) { status in
 Objective‑C selector:
 
 ```objc
-+ (void)showWithMode:title:language:customer:payload:code:completion:;
++ (PisanoTask *)showWithMode:title:language:customer:payload:code:completion:;   // returns a cancellable task (1.1.0+)
 ```
 
 ### `Pisano.healthCheck()`
@@ -537,7 +549,7 @@ Pisano.healthCheck(language:customer:payload:code:completion:)
 Objective‑C selector:
 
 ```objc
-+ (void)healthCheckWithLanguage:customer:payload:code:completion:;
++ (PisanoTask *)healthCheckWithLanguage:customer:payload:code:completion:;   // returns a cancellable task (1.1.0+)
 ```
 
 Example (Swift):
@@ -573,18 +585,110 @@ Pisano.track(event:payload:customer:language:completion:)
 Objective‑C selector:
 
 ```objc
-+ (void)trackWithEvent:payload:customer:language:completion:;
++ (PisanoTask *)trackWithEvent:payload:customer:language:completion:;   // returns a cancellable task (1.1.0+)
 ```
 
 ### `Pisano.clear()`
 
-Clears SDK session/state.
+Ends the current session (logout, user or tenant switch): cancels running calls, closes an open survey and removes all SDK data of the session. See [Logout and User / Tenant Switch](#-logout-and-user--tenant-switch).
 
 Objective‑C selector:
 
 ```objc
 + (void)clear;
 ```
+
+### 🧵 Threading, Timeout and Cancellation
+
+#### Threading
+
+| | |
+|---|---|
+| **Calling thread** | Call `boot`, `healthCheck`, `show`, `track` and `clear` from the **main thread** (recommended). |
+| **Blocking** | None of them blocks the calling thread. Network requests run in the background, so calling them at app launch does not freeze the UI. |
+| **Callback thread** | Every `completion` is invoked **asynchronously on the main thread**, so you can update the UI directly in it. |
+
+#### Timeout
+
+`Pisano.requestTimeout` sets the network timeout, in seconds, for every SDK request. A request fails when the server sends no data for this long. The default is `60`; values `<= 0` reset it to the default. It applies to requests started after it is set.
+
+```swift
+Pisano.requestTimeout = 15
+```
+
+```objc
+Pisano.requestTimeout = 15;
+```
+
+#### Cancellation
+
+`boot`, `healthCheck`, `show` and `track` return a `PisanoTask`. Keeping it is optional. Call `cancel()` to stop a call you no longer need, for example when the screen that started it is closed. `cancel()` can be called from any thread.
+
+If the call has not finished yet, its network request is cancelled and `completion` is called **once**, on the main thread, with:
+
+| Call | Status on cancel |
+|---|---|
+| `boot` | `.initFailed` |
+| `healthCheck` | `false` |
+| `show` | `.none` (widget is not shown) |
+| `track` | `.none` |
+
+If the call has already finished, or `show` has already presented the widget, `cancel()` does nothing. `isCancelled` tells whether the call was cancelled.
+
+```swift
+let task = Pisano.healthCheck { isHealthy in
+    // Main thread
+}
+// Later, e.g. in viewWillDisappear:
+task.cancel()
+```
+
+```objc
+PisanoTask *task = [Pisano healthCheckWithLanguage:nil customer:nil payload:nil code:nil
+                                        completion:^(BOOL isHealthy) { /* main thread */ }];
+[task cancel];
+```
+
+#### Known limitations
+
+- `track`'s `completion` is not called when the event is sent or fails yet; it is only called on `cancel()`.
+- Some `show` failures before the widget is presented (for example no boot data or a network error) do not call `completion` yet. Use `cancel()` to end a call you no longer wait for.
+
+### 🔐 Logout and User / Tenant Switch
+
+Call `Pisano.clear()` when a user logs out or when the app switches to another user or tenant (for example another seller in a marketplace app), then call `Pisano.boot(...)` for the new session:
+
+```swift
+Pisano.clear()
+Pisano.boot(appId: newAppId, accessKey: newAccessKey, code: newCode,
+            apiUrl: apiUrl, feedbackUrl: feedbackUrl) { status in /* … */ }
+```
+
+#### What `clear()` removes
+
+| Data | Where it is kept | Removed by `clear()` |
+|---|---|---|
+| Boot credentials (app id, access key, code, URLs) | Memory and Keychain (UserDefaults only if the Keychain is unavailable) | ✅ |
+| SDK detail and trigger responses, last used code | Memory and UserDefaults | ✅ |
+| "Display once" and display-rate state | UserDefaults | ✅ |
+| Cookies set by the Pisano API (session, load balancer) | SDK's own in-memory cookie jar | ✅ |
+| API responses | Never stored: requests use an ephemeral session with caching disabled | — |
+| Survey web data: device id, "already answered" guard, incomplete surveys | iOS 17+: SDK's own web data store | ✅ everything in that store (cookies, local / session storage, IndexedDB, caches) |
+| | iOS 12–16: the app's default web data store | ✅ the survey's localStorage entries on the feedback origin |
+
+`clear()` also ends the session's work in progress:
+
+- Calls still running are cancelled; their `completion` is called once with the cancel status (see [Cancellation](#cancellation)). Their responses are dropped, so they cannot write the previous session's data back.
+- An open survey is closed; its `completion` is called once with `.none`.
+- A survey shown right after `clear()` waits until the web data removal has finished.
+
+`clear()` never touches the host app's own data: its UserDefaults keys, Keychain items, `HTTPCookieStorage.shared`, URL cache or its own web views.
+
+#### Notes
+
+- **iOS 12–16:** the survey shares the app's default web data store. Only the survey's own localStorage entries are removed, never anything else in that store, because on on-premise installs it can hold the host app's data for the same domain.
+- **Reinstall:** iOS keeps Keychain items when an app is deleted, so boot credentials can survive a reinstall. Call `clear()` (or `boot` with the current user's values) on first launch if that matters for your app.
+- Call `clear()` from the main thread, like the other SDK calls.
 
 ### `Pisano.debugMode()`
 
