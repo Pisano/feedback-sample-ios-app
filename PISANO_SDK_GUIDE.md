@@ -103,7 +103,7 @@ If a survey is configured to show only once per user, subsequent calls return `d
 
 ## iOS (Native — Swift / Objective-C)
 
-**SDK repository:** [github.com/Pisano/pisano-ios](https://github.com/Pisano/pisano-ios) — recommended **`PisanoFeedback` 1.0.21**
+**SDK repository:** [github.com/Pisano/pisano-ios](https://github.com/Pisano/pisano-ios) — recommended **`PisanoFeedback` 1.1.0**
 **Sample app:** [github.com/Pisano/feedback-sample-ios-app](https://github.com/Pisano/feedback-sample-ios-app) — open **`pisano-ios-sdk-sample-app-uikit`** for the **recommended UIKit** reference; a SwiftUI sample is included too.
 
 ### Requirements
@@ -123,7 +123,7 @@ If a survey is configured to show only once per user, subsequent calls return `d
 https://github.com/Pisano/pisano-ios.git
 ```
 
-3. Set version rule: **Up to Next Major** → **1.0.21**
+3. Set version rule: **Up to Next Major** → **1.1.0**
 4. Select the **`PisanoFeedback`** product and add it to your app target.
 
 #### CocoaPods
@@ -135,7 +135,7 @@ platform :ios, '12.0'
 use_frameworks!
 
 target 'YourApp' do
-  pod 'Pisano', '~> 1.0.21'
+  pod 'Pisano', '~> 1.1'
 end
 ```
 
@@ -224,10 +224,10 @@ Pisano.track(event: "purchase_completed",
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 5. CLEAR — clear SDK session/state
+// 5. CLEAR — end the session (logout, user / tenant switch)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Pisano.clear()
+Pisano.clear()   // then boot again for the new user / tenant
 ```
 
 ### Objective-C
@@ -257,6 +257,13 @@ Pisano.clear()
     NSLog(@"Show: %ld", (long)status);
 }];
 ```
+
+### Threading, timeout and cancellation (1.1.0+)
+
+- Call the SDK from the main thread. No call blocks it; every `completion` arrives asynchronously on the main thread.
+- `Pisano.requestTimeout = 15` sets the network timeout in seconds (default 60).
+- `boot`, `healthCheck`, `show` and `track` return a `PisanoTask`; `task.cancel()` ends the call and calls its completion once (`.initFailed`, `false` or `.none`).
+- `Pisano.clear()` cancels running calls, closes an open survey and removes all SDK data of the session. The full list is in the [pisano-ios README](https://github.com/Pisano/pisano-ios#logout-and-user--tenant-switch).
 
 ---
 
@@ -823,7 +830,7 @@ Each platform reports status through callbacks. The table below maps the common 
 
 | Platform | SDK | Latest version | Package manager |
 |----------|-----|----------------|-----------------|
-| iOS | `PisanoFeedback` | 1.0.21 | SPM / CocoaPods |
+| iOS | `PisanoFeedback` | 1.1.0 | SPM / CocoaPods |
 | Android | `co.pisano:feedback` | 1.3.31 | Gradle (Maven Central) |
 | React Native | `feedback-react-native-sdk` | 0.2.15 | npm / yarn |
 | Flutter | `feedback_flutter_sdk` | 0.0.17 | Git dependency (pubspec) |
