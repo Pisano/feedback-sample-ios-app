@@ -254,8 +254,8 @@ Pisano.healthCheck { ok in
 ## 📱 Requirements
 
 - **SDK**: iOS 12.0+
-- **Sample apps (this repo)**: iOS 13.0+ (deployment target)
-- Xcode 12.0+
+- **Sample apps (this repo)**: iOS 15.0+ (deployment target; Xcode 27 builds only for iOS 15.0 and above)
+- Xcode 16.0+ to build the sample apps
 
 ## 📦 Installation
 
