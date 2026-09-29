@@ -62,5 +62,4 @@ pod 'Pisano', '~> 1.0.21'
 ## References
 
 - Binary: [pisano-ios 1.0.21](https://github.com/Pisano/pisano-ios/releases/tag/1.0.21)
-- Source: [feedback-ios 1.0.21](https://github.com/Pisano/feedback-ios)
 - CocoaPods: [Pisano 1.0.21](https://cocoapods.org/pods/Pisano)

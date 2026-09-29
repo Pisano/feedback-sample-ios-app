@@ -1,8 +1,7 @@
-# feedback-sample-ios-app — Release Notes (SDK 1.0.20 / MT-41)
+# feedback-sample-ios-app — Release Notes (SDK 1.0.20)
 
 **Sample app release:** aligns with **PisanoFeedback `1.0.20`** (SPM / CocoaPods via [pisano-ios](https://github.com/Pisano/pisano-ios))  
-**Branch:** `feat/MT-41-sample` → `main`  
-**Ticket:** MT-41 — bottom sheet behaviour + optional `dismissOnDrag`
+**Scope:** bottom sheet behaviour + optional `dismissOnDrag`
 
 ---
 
@@ -68,7 +67,7 @@ Pisano.show(
 
 ## Sample projects in this repo
 
-| Xcode project | Scheme | MT-41 UI |
+| Xcode project | Scheme | Bottom sheet UI |
 |---------------|--------|----------|
 | `pisano-ios-sdk-sample-app-uikit` | `pisano-feedback` | Segmented: **Drag off / Drag on** |
 | `pisano-ios-sdk-sample-app` | SwiftUI app | Toggle: **Allow swipe-down dismiss** |
@@ -77,7 +76,7 @@ Pisano.show(
 
 ## Run this sample locally
 
-1. Clone repo, checkout `feat/MT-41-sample` (or `main` after merge).
+1. Clone the repo (`main`).
 2. Copy credentials (do **not** commit):
    - UIKit: `pisano-ios-sdk-sample-app-uikit/App/Resources/PisanoSecrets.example.plist` → `PisanoSecrets.plist`
    - SwiftUI: `pisano-ios-sdk-sample-app/App/Resources/PisanoSecrets.example.plist` → `PisanoSecrets.plist`
@@ -87,7 +86,7 @@ Pisano.show(
 
 ---
 
-## Smoke test checklist (MT-41)
+## Smoke test checklist
 
 | # | Test | Expected |
 |---|------|----------|
@@ -101,6 +100,4 @@ Pisano.show(
 ## References
 
 - Binary distribution: [pisano-ios `1.0.20`](https://github.com/Pisano/pisano-ios/releases/tag/1.0.20)
-- Source & tag: [feedback-ios `1.0.20`](https://github.com/Pisano/feedback-ios)
-- Technical doc: [MT-41_BOTTOM_SHEET.md](https://github.com/Pisano/feedback-ios/blob/main/docs/MT-41_BOTTOM_SHEET.md)
 - CocoaPods: [Pisano 1.0.20](https://cocoapods.org/pods/Pisano)
