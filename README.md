@@ -13,7 +13,7 @@ Pisano Feedback iOS SDK helps you collect surveys and user feedback in your iOS 
 
 SDK module/product name used by these samples: **`PisanoFeedback`** (version **1.1.0**)
 
-## MT-41 — Bottom sheet `dismissOnDrag` (sample UI)
+## Bottom sheet `dismissOnDrag` (sample UI)
 
 Both sample projects include **Dismiss on drag (Off/On)** on the form screen:
 
