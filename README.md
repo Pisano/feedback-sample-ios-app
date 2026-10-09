@@ -698,7 +698,7 @@ PisanoTask *task = [Pisano healthCheckWithLanguage:nil pisanoCustomer:nil payloa
 #### Known limitations
 
 - `track`'s `completion` is not called when the event is sent or fails yet; it is only called on `cancel()`.
-- Some `show` failures before the widget is presented (for example no boot data or a network error) do not call `completion` yet. Use `cancel()` to end a call you no longer wait for.
+- When the survey is not shown (no boot data, no connection, a failed request, nothing to present on), `show` ends with `.none`. `clear()` ends a `show` at any stage with `.none`, including one about to be presented, which is then not shown.
 
 ### 🔐 Logout and User / Tenant Switch
 

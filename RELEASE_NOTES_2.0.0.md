@@ -26,9 +26,9 @@ subscription.cancel()
 
 ### One result per call, and it says whether feedback was sent
 
-- `completion` is called **exactly once** for a shown survey.
+- `completion` is called **exactly once** for a shown survey, and also when the survey is not shown: no boot data, no connection, a failed request or nothing to present on end the call with `.none` (before, no callback).
 - Once the survey was submitted the result is `.sendFeedback`, however the widget closes: the thank-you screen timing out, the close button, a drag or an outside tap on the thank-you screen, or closing a chat survey later.
-- `clear()` still ends the call with `.none`.
+- `clear()` still ends the call with `.none`, now at every stage: also while the request is failing or the widget is about to be presented. That survey is not shown afterwards.
 
 ### Typed customer: `PisanoCustomer`
 
@@ -58,7 +58,9 @@ The SDK is built in the Swift 6 language mode with complete strict concurrency c
   - a submitted chat survey reports `.sendFeedback` (was `.closed`);
   - closing the thank-you screen early reports `.sendFeedback` once (was `.closed`, then `.sendFeedback` 3 seconds later);
   - your app dismissing the widget ends `show` with `.closed` (was: no callback);
-  - a survey page that cannot load closes the widget and ends `show` with `.none` (was: an empty widget and no callback).
+  - a survey page that cannot load closes the widget and ends `show` with `.none` (was: an empty widget and no callback);
+  - a survey that is not shown — no boot data, no connection, a failed detail or trigger request, nothing to present on — ends `show` with `.none` (was: no callback);
+  - `clear()` while a survey is about to be presented ends `show` with `.none` and the survey is not shown (was: it could appear after `clear()`, with the ended session).
 - **`track`** sends the customer in the same format as `show` (snake case, like Android); it used to send the dictionary unchanged.
 
 ## Fixes
@@ -98,4 +100,4 @@ The SDK is built in the Swift 6 language mode with complete strict concurrency c
 
 - The survey page shows its thank-you screen 2–3 seconds before it reports the submit. If the user closes it in that time, the call ends with `.closed` and no `feedbackSubmitted` event. A fix on the survey side is planned.
 - `track`'s `completion` is still only called on `cancel()`.
-- Some `show` failures before the widget is presented (for example no boot data or a network error) still do not call `completion`; use `cancel()`.
+- `show` has no overall timeout yet: a request that never answers ends only by `Pisano.requestTimeout`, `cancel()` or `clear()`.
