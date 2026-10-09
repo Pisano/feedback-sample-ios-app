@@ -1,4 +1,5 @@
 import UIKit
+import StoreKit
 import PisanoFeedback
 
 final class FormViewController: UIViewController, UITextFieldDelegate {
@@ -13,10 +14,16 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
     private let emailField = CustomTextField(title: "Email", placeholder: "email@address.com", keyboard: .emailAddress, contentType: .emailAddress)
     private let phoneField = CustomTextField(title: "Phone", placeholder: "01234567890", keyboard: .phonePad, contentType: .telephoneNumber)
     private let externalIdField = CustomTextField(title: "External Id", contentType: .username)
+    private let planField = CustomTextField(title: "Custom attribute: plan", placeholder: "gold", contentType: nil)
     private let titleField = CustomTextField(title: "Custom Title", contentType: nil)
 
     private let modeControl = UISegmentedControl(items: ["Default", "BottomSheet"])
     private let dismissOnDragControl = UISegmentedControl(items: ["Drag off", "Drag on"])
+    private let customerControl = UISegmentedControl(items: ["Dictionary", "PisanoCustomer"])
+    private let storeReviewControl = UISegmentedControl(items: ["SDK asks", "App asks"])
+    private let eventsLabel = UILabel()
+    private var events: [String] = []
+    private var eventSubscription: PisanoSubscription?
     private let fontControl = UISegmentedControl(items: ["Title", "Body"])
 
     private let statusLabel = UILabel()
@@ -113,6 +120,7 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
         stack.addArrangedSubview(emailField)
         stack.addArrangedSubview(phoneField)
         stack.addArrangedSubview(externalIdField)
+        stack.addArrangedSubview(planField)
         stack.addArrangedSubview(titleField)
 
         // Return key navigation / dismissal
@@ -120,10 +128,11 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
         emailField.textField.returnKeyType = .next
         phoneField.textField.returnKeyType = .done // won't show on phonePad, but harmless
         externalIdField.textField.returnKeyType = .next
+        planField.textField.returnKeyType = .next
         titleField.textField.returnKeyType = .done
 
-        [nameField, emailField, phoneField, externalIdField, titleField].forEach { f in
-            f.textField.delegate = self
+        [nameField, emailField, phoneField, externalIdField, planField, titleField].forEach { field in
+            field.textField.delegate = self
         }
 
         // Add Done toolbar for number pad (phone)
@@ -134,6 +143,15 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
 
         addLabeledControl("Dismiss on drag (bottom sheet)", control: dismissOnDragControl)
         dismissOnDragControl.selectedSegmentIndex = 0
+
+        addLabeledControl("Send the customer as", control: customerControl)
+        customerControl.selectedSegmentIndex = 1
+
+        // Pisano.automaticStoreReview: with "App asks" the SDK only sends the
+        // redirectedToStore event and this screen asks for the prompt itself.
+        addLabeledControl("Store review prompt", control: storeReviewControl)
+        storeReviewControl.selectedSegmentIndex = Pisano.automaticStoreReview ? 0 : 1
+        storeReviewControl.addTarget(self, action: #selector(didChangeStoreReview), for: .valueChanged)
 
         addTitleColorPicker()
 
@@ -153,6 +171,16 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
         statusLabel.font = .systemFont(ofSize: 13)
         statusLabel.text = "Status: -"
         stack.addArrangedSubview(statusLabel)
+
+        eventsLabel.numberOfLines = 0
+        eventsLabel.textColor = .secondaryLabel
+        eventsLabel.font = .systemFont(ofSize: 13)
+        eventsLabel.accessibilityIdentifier = "eventsLabel"
+        eventsLabel.text = "Events: -"
+        stack.addArrangedSubview(eventsLabel)
+        eventSubscription = Pisano.subscribe { [weak self] event in
+            self?.record(event)
+        }
     }
 
     @objc private func endEditingTap() {
@@ -177,6 +205,8 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
         case phoneField.textField:
             externalIdField.textField.becomeFirstResponder()
         case externalIdField.textField:
+            planField.textField.becomeFirstResponder()
+        case planField.textField:
             titleField.textField.becomeFirstResponder()
         default:
             textField.resignFirstResponder()
@@ -216,28 +246,28 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
         ])
 
         colorButtons = titleColors.enumerated().map { idx, color in
-            let b = UIButton(type: .system)
-            b.tag = idx
-            b.backgroundColor = color
-            b.layer.cornerRadius = 8
-            b.clipsToBounds = true
-            b.translatesAutoresizingMaskIntoConstraints = false
-            b.widthAnchor.constraint(equalToConstant: 40).isActive = true
-            b.heightAnchor.constraint(equalToConstant: 50).isActive = true
-            b.addTarget(self, action: #selector(didTapColor(_:)), for: .touchUpInside)
+            let button = UIButton(type: .system)
+            button.tag = idx
+            button.backgroundColor = color
+            button.layer.cornerRadius = 8
+            button.clipsToBounds = true
+            button.translatesAutoresizingMaskIntoConstraints = false
+            button.widthAnchor.constraint(equalToConstant: 40).isActive = true
+            button.heightAnchor.constraint(equalToConstant: 50).isActive = true
+            button.addTarget(self, action: #selector(didTapColor(_:)), for: .touchUpInside)
 
             let check = UIImageView(image: UIImage(systemName: "checkmark"))
             check.tintColor = .white
             check.translatesAutoresizingMaskIntoConstraints = false
             check.tag = 999
-            b.addSubview(check)
+            button.addSubview(check)
             NSLayoutConstraint.activate([
-                check.centerXAnchor.constraint(equalTo: b.centerXAnchor),
-                check.centerYAnchor.constraint(equalTo: b.centerYAnchor),
+                check.centerXAnchor.constraint(equalTo: button.centerXAnchor),
+                check.centerYAnchor.constraint(equalTo: button.centerYAnchor),
             ])
 
-            colorStack.addArrangedSubview(b)
-            return b
+            colorStack.addArrangedSubview(button)
+            return button
         }
 
         colorScrollView.heightAnchor.constraint(equalToConstant: 50).isActive = true
@@ -253,12 +283,12 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
     }
 
     private func refreshColorSelection() {
-        for b in colorButtons {
-            let selected = b.tag == selectedTitleColorIndex
-            b.alpha = selected ? 0.25 : 1.0
-            b.layer.borderWidth = selected ? 2 : 0
-            b.layer.borderColor = selected ? UIColor.systemBlue.cgColor : nil
-            if let check = b.viewWithTag(999) as? UIImageView {
+        for button in colorButtons {
+            let selected = button.tag == selectedTitleColorIndex
+            button.alpha = selected ? 0.25 : 1.0
+            button.layer.borderWidth = selected ? 2 : 0
+            button.layer.borderColor = selected ? UIColor.systemBlue.cgColor : nil
+            if let check = button.viewWithTag(999) as? UIImageView {
                 check.isHidden = !selected
             }
         }
@@ -273,8 +303,8 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
     }
 
     private func selectedTitleAttributes() -> NSAttributedString? {
-        let t = (titleField.textField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !t.isEmpty else { return nil }
+        let text = (titleField.textField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return nil }
 
         let color: UIColor = titleColors[min(max(0, selectedTitleColorIndex), titleColors.count - 1)]
 
@@ -285,7 +315,7 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
             }
         }()
 
-        return NSAttributedString(string: t, attributes: [.foregroundColor: color, .font: font])
+        return NSAttributedString(string: text, attributes: [.foregroundColor: color, .font: font])
     }
 
     private func didTapShow() {
@@ -296,44 +326,84 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
 
         statusLabel.text = "Status: healthCheck..."
         let language = PisanoSDKConfig.language.isEmpty ? nil : PisanoSDKConfig.language
-        Pisano.healthCheck(language: language) { [weak self] ok in
-            DispatchQueue.main.async {
-                guard let self else { return }
-                if !ok {
-                    self.statusLabel.text = "Status: healthCheck failed (check network/urls)"
-                    let alert = UIAlertController(title: "Health Check Failed",
-                                                  message: "SDK could not reach the API. Check your network and API URLs.",
-                                                  preferredStyle: .alert)
-                    alert.addAction(UIAlertAction(title: "OK", style: .default))
-                    self.present(alert, animated: true)
-                    return
-                }
-
-                self.performShow()
+        // SDK completions are delivered on the main thread.
+        Pisano.healthCheck(language: language) { [weak self] isHealthy in
+            guard let self else { return }
+            guard isHealthy else {
+                self.statusLabel.text = "Status: healthCheck failed (check network/urls)"
+                let alert = UIAlertController(title: "Health Check Failed",
+                                              message: "SDK could not reach the API. Check your network and API URLs.",
+                                              preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "OK", style: .default))
+                self.present(alert, animated: true)
+                return
             }
+            self.performShow()
         }
     }
 
-    private func performShow() {
+    /// The customer as a dictionary: the keys are checked at run time, and an
+    /// unknown one is logged and dropped.
+    private func customerDictionary() -> [String: Any]? {
         var customer: [String: Any] = [:]
         customer.addIfNotEmpty(key: "email", value: emailField.textField.text)
         customer.addIfNotEmpty(key: "name", value: nameField.textField.text)
         customer.addIfNotEmpty(key: "phoneNumber", value: phoneField.textField.text)
         customer.addIfNotEmpty(key: "externalId", value: externalIdField.textField.text)
+        if let plan = planField.textField.text.nonEmpty {
+            customer["customAttributes"] = ["plan": plan]
+        }
+        return customer.isEmpty ? nil : customer
+    }
+
+    /// The same customer with typed fields: a misspelled field does not compile.
+    private func typedCustomer() -> PisanoCustomer {
+        PisanoCustomer(name: nameField.textField.text.nonEmpty,
+                       email: emailField.textField.text.nonEmpty,
+                       phoneNumber: phoneField.textField.text.nonEmpty,
+                       externalId: externalIdField.textField.text.nonEmpty,
+                       customAttributes: planField.textField.text.nonEmpty.map { ["plan": $0] })
+    }
+
+    private func performShow() {
+        let customer: FeedbackManager.Customer = customerControl.selectedSegmentIndex == 1
+            ? .typed(typedCustomer())
+            : .dictionary(customerDictionary())
 
         let language = PisanoSDKConfig.language.isEmpty ? nil : PisanoSDKConfig.language
         let dismissOnDrag = selectedDismissOnDrag()
+        events = []
+        eventsLabel.text = "Events: -"
         FeedbackManager.shared.showFlow(
             mode: selectedMode(),
             title: selectedTitleAttributes(),
             language: language,
-            customer: customer.isEmpty ? nil : customer,
+            customer: customer,
             dismissOnDrag: dismissOnDrag
         ) { [weak self] status in
-            DispatchQueue.main.async {
-                self?.statusLabel.text = "Status: \(status.description) (dismissOnDrag=\(dismissOnDrag))"
-            }
+            self?.statusLabel.text = "Status: \(status.description) (dismissOnDrag=\(dismissOnDrag))"
         }
+    }
+
+    private func record(_ event: PisanoEvent) {
+        let reasons = ["none", "closeButton", "drag", "outside", "afterSubmit", "clear", "loadFailed", "hostDismissed"]
+        switch event.type {
+        case .opened: events.append("opened")
+        case .feedbackSubmitted: events.append(event.hasChat ? "feedbackSubmitted(chat)" : "feedbackSubmitted")
+        case .redirectedToStore:
+            events.append(event.handledBySDK ? "redirectedToStore(SDK asked)" : "redirectedToStore(app asks)")
+            if !event.handledBySDK, let scene = view.window?.windowScene {
+                // Pisano.automaticStoreReview is off: the app decides.
+                SKStoreReviewController.requestReview(in: scene)
+            }
+        case .closed: events.append("closed(\(reasons[event.closeReason.rawValue]))")
+        @unknown default: events.append("unknown")
+        }
+        eventsLabel.text = "Events: " + events.joined(separator: ", ")
+    }
+
+    @objc private func didChangeStoreReview() {
+        Pisano.automaticStoreReview = storeReviewControl.selectedSegmentIndex == 0
     }
 
     private func didTapClear() {

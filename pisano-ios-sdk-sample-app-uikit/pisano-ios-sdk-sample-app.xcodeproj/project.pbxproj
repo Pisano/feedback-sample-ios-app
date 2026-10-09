@@ -605,7 +605,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = co.pisano.feedbackTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/pisano-feedback.app/pisano-feedback";
 			};
@@ -630,7 +630,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = co.pisano.feedbackTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/pisano-feedback.app/pisano-feedback";
 			};
@@ -674,7 +674,7 @@
 			repositoryURL = "https://github.com/Pisano/pisano-ios.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.1.0;
+				minimumVersion = 2.0.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

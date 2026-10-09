@@ -30,7 +30,15 @@ struct FormView: View {
                                     icon: Image(systemName: "person.wave.2"),
                                     type: .plain,
                                     text: $viewModel.externalId)
+
+                    CustomTextField(title: "Custom attribute: plan",
+                                    placeholder: "gold",
+                                    icon: Image(systemName: "tag.fill"),
+                                    type: .plain,
+                                    text: $viewModel.plan)
                 }
+
+                Toggle("Send as PisanoCustomer", isOn: $viewModel.typedCustomer)
                 
                 CustomTextField(title: .title,
                                 icon: Image(systemName: "pencil"),
@@ -76,6 +84,12 @@ struct FormView: View {
 
                 Text("Dismiss on drag (bottom sheet)")
                 Toggle("Allow swipe-down dismiss", isOn: $viewModel.dismissOnDrag)
+
+                Text("Store review prompt")
+                Toggle("SDK asks for it", isOn: $viewModel.automaticStoreReview)
+                Text("Off: the SDK only sends redirectedToStore and this app asks for the prompt.")
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
                 
                 Text(.actionStatus)
                 Text(viewModel.sdkCallback.description)
@@ -90,6 +104,11 @@ struct FormView: View {
                 AppButton(title: .clear, action:  {
                     viewModel.clear()
                 }, backgroundColor: .clear)
+
+                Text("Events")
+                Text(viewModel.events.isEmpty ? "-" : viewModel.events.joined(separator: "\n"))
+                    .font(.footnote.monospaced())
+                    .foregroundColor(.secondary)
             }
             .padding()
             .padding([.top, .horizontal])
