@@ -69,6 +69,7 @@ The SDK is built in the Swift 6 language mode with complete strict concurrency c
 - The close-on-outside-click recognizer no longer goes on your app's window and no longer turns on `isUserInteractionEnabled` on your view.
 - The widget is released when it closes in any way, including when your app dismisses it.
 - The old drag line image no longer shows above the bottom sheet; the system grabber shows only with `dismissOnDrag: true`.
+- A submit is recognized as soon as the thank-you screen appears: the SDK now listens to the survey's `PSN_END_OF_FLOW` message. Before, it waited for `PSN_FEEDBACK_SUBMITTED`, which arrives 2–3 seconds later and not at all if the user closes the thank-you screen first; such a submit ended with `.closed`. The thank-you screen now closes itself 3 seconds after it appears.
 - The bottom sheet no longer stays blank while the survey loads: the survey's own loader shows right away, centered in the visible part of the sheet.
 
 ## Migrating from 1.1.0
@@ -98,6 +99,5 @@ The SDK is built in the Swift 6 language mode with complete strict concurrency c
 
 ## Known limitations
 
-- The survey page shows its thank-you screen 2–3 seconds before it reports the submit. If the user closes it in that time, the call ends with `.closed` and no `feedbackSubmitted` event. A fix on the survey side is planned.
 - `track`'s `completion` is still only called on `cancel()`.
 - `show` has no overall timeout yet: a request that never answers ends only by `Pisano.requestTimeout`, `cancel()` or `clear()`.
