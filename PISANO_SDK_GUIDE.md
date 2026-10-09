@@ -184,12 +184,11 @@ Pisano.show(
     mode: .bottomSheet,                                          // .default or .bottomSheet
     title: NSAttributedString(string: "We Value Your Feedback"), // optional
     language: "en",                                              // optional
-    customer: [                                                  // optional
-        "name": "John Doe",
-        "email": "john@example.com",
-        "phoneNumber": "+1234567890",
-        "externalId": "CRM-12345"
-    ],
+    pisanoCustomer: PisanoCustomer(name: "John Doe",             // optional
+                                   email: "john@example.com",
+                                   phoneNumber: "+1234567890",
+                                   externalId: "CRM-12345",
+                                   customAttributes: ["plan": "gold"]),
     payload: ["source": "app", "screen": "home"],                // optional
     code: "ANOTHER_SURVEY_CODE",                                 // optional override
     dismissOnDrag: false                                         // optional — swipe dismiss when .bottomSheet
@@ -198,13 +197,8 @@ Pisano.show(
 }
 
 
-// Typed customer (2.0+): same fields as Android's PisanoCustomer
-let customer = PisanoCustomer(name: "John Doe", email: "john@example.com",
-                              phoneNumber: "+1234567890", externalId: "CRM-12345",
-                              customAttributes: ["plan": "gold"])
-Pisano.show(mode: .bottomSheet, pisanoCustomer: customer) { status in
-    print("Show status: \(status.description)")
-}
+// The customer is a PisanoCustomer (2.0+): fixed fields, same as Android, so a
+// misspelled field does not compile. The 1.x customer dictionary is gone.
 
 // Events (2.0+): what happened while the survey was on screen
 let subscription = Pisano.subscribe { event in
@@ -219,7 +213,7 @@ Pisano.automaticStoreReview = false
 // 3. HEALTH CHECK — verify reachability before show
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Pisano.healthCheck(language: "en", customer: nil, payload: nil, code: nil) { ok in
+Pisano.healthCheck(language: "en", pisanoCustomer: nil, payload: nil, code: nil) { ok in
     if ok {
         Pisano.show { status in print(status.description) }
     } else {
@@ -234,7 +228,7 @@ Pisano.healthCheck(language: "en", customer: nil, payload: nil, code: nil) { ok 
 
 Pisano.track(event: "purchase_completed",
             payload: ["product_id": "PROD-123"],
-            customer: ["externalId": "USER-456"],
+            pisanoCustomer: PisanoCustomer(externalId: "USER-456"),
             language: "en") { status in
     print("Track status: \(status.description)")
 }
@@ -267,7 +261,8 @@ Pisano.clear()   // then boot again for the new user / tenant
 [Pisano showWithMode:ViewModeBottomSheet
               title:[[NSAttributedString alloc] initWithString:@"Feedback"]
            language:@"en"
-           customer:@{@"externalId": @"USER-123"}
+     pisanoCustomer:[[PisanoCustomer alloc] initWithName:nil email:nil phoneNumber:nil
+                                              externalId:@"USER-123" customAttributes:nil]
             payload:@{@"source": @"app"}
                code:nil
       dismissOnDrag:NO
@@ -275,11 +270,7 @@ Pisano.clear()   // then boot again for the new user / tenant
     NSLog(@"Show: %@", [CloseStatusHelper description:status]);
 }];
 
-// Typed customer and events (2.0+)
-PisanoCustomer *customer = [[PisanoCustomer alloc] initWithName:@"John Doe" email:nil phoneNumber:nil
-                                                     externalId:@"USER-123" customAttributes:nil];
-[Pisano showWithMode:ViewModeBottomSheet title:nil language:@"en" pisanoCustomer:customer
-             payload:nil code:nil dismissOnDrag:YES completion:^(enum CloseStatus status) {}];
+// Events (2.0+)
 PisanoSubscription *subscription = [Pisano subscribe:^(PisanoEvent *event) {
     NSLog(@"Event: %ld", (long)event.type);
 }];

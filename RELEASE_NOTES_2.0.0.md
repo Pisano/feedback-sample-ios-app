@@ -2,7 +2,7 @@
 
 Events, a clear result rule, a typed customer and iOS 15 as the minimum.
 
-This is a **major** release: it raises the minimum iOS version, renames two `CloseStatus` values in Swift and changes some results (see [Breaking changes](#breaking-changes)). Most apps only need to raise their deployment target.
+This is a **major** release: it raises the minimum iOS version, replaces the customer dictionary with `PisanoCustomer`, renames two `CloseStatus` values in Swift and changes some results (see [Breaking changes](#breaking-changes)).
 
 ## Highlights
 
@@ -32,17 +32,14 @@ subscription.cancel()
 
 ### Typed customer: `PisanoCustomer`
 
-Same fields as Android. A misspelled field is a compile error instead of data that never arrives.
+The customer is now passed as a `PisanoCustomer` with fixed fields, the same as on Android. In 1.x a misspelled dictionary key (for example `phone` instead of `phoneNumber`) was dropped without any sign; a misspelled field now does not compile.
 
 ```swift
 let customer = PisanoCustomer(name: "Ada", phoneNumber: "+90555...", customAttributes: ["plan": "gold"])
 Pisano.show(mode: .bottomSheet, pisanoCustomer: customer) { status in }
 ```
 
-`show`, `healthCheck` and `track` have `pisanoCustomer:` variants (Objective-C too). The `customer:` dictionary variants keep working and now:
-
-- map the spellings in use to the right field, ignoring case and `_` / `-`: `phone`, `phone_number` → `phoneNumber`; `external_id` → `externalId`; `customAttrs`, `custom_attrs`, `custom_attributes` → `customAttributes`;
-- log `Pisano: Customer keys not supported and not sent: …` for anything else, always (not only in debug mode).
+`show`, `healthCheck` and `track` take it as `pisanoCustomer:` (Objective-C too). Fields: `name`, `email`, `phoneNumber`, `externalId`, `customAttributes`. Only the fields you set are sent.
 
 ### App Store review: `Pisano.automaticStoreReview`
 
@@ -55,6 +52,7 @@ The SDK is built in the Swift 6 language mode with complete strict concurrency c
 ## Breaking changes
 
 - **Minimum iOS 15.0**, Xcode 16. Apps that still support iOS 12–14 can stay on 1.1.0.
+- **Customer:** the `customer: [String: Any]` parameter of `show`, `healthCheck` and `track` is replaced by `pisanoCustomer: PisanoCustomer`. In Objective-C the selectors change from `…customer:…` to `…pisanoCustomer:…`.
 - **Swift renames:** `CloseStatus.initSucces` → `.initSuccess`, `.surveyPassive` → `.channelPassive`. The old names still compile with a deprecation warning, except in a `switch` that lists them without `default`. Objective-C names (`CloseStatusInitSucces`, `CloseStatusSurveyPassive`) and all raw values are unchanged.
 - **Results:**
   - a submitted chat survey reports `.sendFeedback` (was `.closed`);
@@ -62,7 +60,6 @@ The SDK is built in the Swift 6 language mode with complete strict concurrency c
   - your app dismissing the widget ends `show` with `.closed` (was: no callback);
   - a survey page that cannot load closes the widget and ends `show` with `.none` (was: an empty widget and no callback).
 - **`track`** sends the customer in the same format as `show` (snake case, like Android); it used to send the dictionary unchanged.
-- **`customAttributes`** is the canonical custom attributes key. `customAttrs` is still accepted.
 
 ## Fixes
 
@@ -76,9 +73,26 @@ The SDK is built in the Swift 6 language mode with complete strict concurrency c
 
 1. Raise the deployment target to iOS 15.0 and update to 2.0.0 (SPM: Up to Next Major from 2.0.0; CocoaPods: `pod 'Pisano', '~> 2.0'`).
 2. Replace `.initSucces` / `.surveyPassive` with `.initSuccess` / `.channelPassive` in Swift.
-3. If you count `.closed` as "not submitted", note that submitted chat surveys and early-closed thank-you screens now report `.sendFeedback`.
-4. Optional: move to `PisanoCustomer`, subscribe to events, set `automaticStoreReview`.
-5. Remove any `pisano-actions` NotificationCenter observer: the SDK has not posted it for several releases.
+3. Replace the customer dictionary with `PisanoCustomer`:
+
+   | 1.x dictionary key | `PisanoCustomer` field |
+   |---|---|
+   | `name` | `name` |
+   | `email` | `email` |
+   | `phoneNumber` | `phoneNumber` |
+   | `externalId` | `externalId` |
+   | `customAttrs` | `customAttributes` |
+
+   ```swift
+   // 1.x
+   Pisano.show(customer: ["name": "Ada", "customAttrs": ["plan": "gold"]]) { _ in }
+   // 2.0
+   Pisano.show(pisanoCustomer: PisanoCustomer(name: "Ada", customAttributes: ["plan": "gold"])) { _ in }
+   ```
+
+4. If you count `.closed` as "not submitted", note that submitted chat surveys and early-closed thank-you screens now report `.sendFeedback`.
+5. Optional: subscribe to events, set `automaticStoreReview`.
+6. Remove any `pisano-actions` NotificationCenter observer: the SDK has not posted it for several releases.
 
 ## Known limitations
 
