@@ -27,7 +27,7 @@ subscription.cancel()
 ### One result per call, and it says whether feedback was sent
 
 - `completion` is called **exactly once** for a shown survey, and also when the survey is not shown: no boot data, no connection, a failed request or nothing to present on end the call with `.none` (before, no callback).
-- Once the survey was submitted the result is `.sendFeedback`, however the widget closes: the thank-you screen timing out, the close button, a drag or an outside tap on the thank-you screen, or closing a chat survey later.
+- Once the survey was submitted the result is `.sendFeedback`, however the widget closes: the survey ending the thank-you screen, the close button, a drag or an outside tap on the thank-you screen, or closing a chat survey later.
 - `clear()` still ends the call with `.none`, now at every stage: also while the request is failing or the widget is about to be presented. That survey is not shown afterwards.
 
 ### Typed customer: `PisanoCustomer`
@@ -69,7 +69,7 @@ The SDK is built in the Swift 6 language mode with complete strict concurrency c
 - The close-on-outside-click recognizer no longer goes on your app's window and no longer turns on `isUserInteractionEnabled` on your view.
 - The widget is released when it closes in any way, including when your app dismisses it.
 - The old drag line image no longer shows above the bottom sheet; the system grabber shows only with `dismissOnDrag: true`.
-- A submit is recognized as soon as the thank-you screen appears: the SDK now listens to the survey's `PSN_END_OF_FLOW` message. Before, it waited for `PSN_FEEDBACK_SUBMITTED`, which arrives 2–3 seconds later and not at all if the user closes the thank-you screen first; such a submit ended with `.closed`. The thank-you screen now closes itself 3 seconds after it appears.
+- A submit is recognized as soon as the thank-you screen appears: the SDK now listens to the survey's `PSN_END_OF_FLOW` message. Before, it waited for `PSN_FEEDBACK_SUBMITTED`, which arrives 2–3 seconds later and not at all if the user closes the thank-you screen first; such a submit ended with `.closed`. The SDK no longer runs its own 3-second timer: the widget closes when the survey ends the thank-you screen, and a chat survey stays open.
 - The bottom sheet no longer stays blank while the survey loads: the survey's own loader shows right away, centered in the visible part of the sheet.
 
 ## Migrating from 1.1.0
