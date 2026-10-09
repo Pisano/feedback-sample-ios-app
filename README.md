@@ -11,20 +11,34 @@ Pisano Feedback iOS SDK helps you collect surveys and user feedback in your iOS 
 - **UIKit (Swift) — recommended baseline**: `pisano-ios-sdk-sample-app-uikit/pisano-ios-sdk-sample-app.xcodeproj`
 - **SwiftUI sample**: `pisano-ios-sdk-sample-app/pisano-ios-sdk-sample-app.xcodeproj`
 
-SDK module/product name used by these samples: **`PisanoFeedback`** (version **1.1.0**)
+SDK module/product name used by these samples: **`PisanoFeedback`** (version **2.0.0**)
 
-## Bottom sheet `dismissOnDrag` (sample UI)
+## What the form screen shows
 
-Both sample projects include **Dismiss on drag (Off/On)** on the form screen:
+Both sample projects have the same options on the form screen (UIKit: segmented controls, SwiftUI: toggles):
 
-| Project | UI control |
-|---------|------------|
-| `pisano-ios-sdk-sample-app-uikit` | Segmented control |
-| `pisano-ios-sdk-sample-app` (SwiftUI) | Toggle |
+| Option | SDK API |
+|--------|---------|
+| View mode, custom title, title color / font | `Pisano.show(mode:title:…)` |
+| Dismiss on drag (bottom sheet) | `Pisano.show(…, dismissOnDrag:)` |
+| Customer as **dictionary** or **`PisanoCustomer`**, with a `plan` custom attribute | `show(customer:)` / `show(pisanoCustomer:)` |
+| Store review prompt: **SDK asks** / **App asks** | `Pisano.automaticStoreReview`; with "App asks" the app calls `SKStoreReviewController` on the `redirectedToStore` event |
+| Event log (`opened`, `feedbackSubmitted`, `redirectedToStore`, `closed (reason)`) | `Pisano.subscribe` |
+| Result line | the `show` completion (`CloseStatus`) |
 
-Value is forwarded via `FeedbackManager.showFlow(..., dismissOnDrag:)` → `Pisano.show(...)`.
+The calls go through `FeedbackManager.showFlow(…)` → `Pisano.show(…)`. Both apps build in the Swift 6 language mode.
 
-Details: [RELEASE_NOTES_1.0.21.md](./RELEASE_NOTES_1.0.21.md)
+## Pisano Feedback iOS SDK — v2.0.0 Release Notes
+
+### What's new in v2.0.0
+
+- **Events:** `Pisano.subscribe` reports `opened`, `feedbackSubmitted`, `redirectedToStore` and `closed` (with the reason) before the `show` completion.
+- **One result per call:** once the survey was submitted the result is `.sendFeedback`, however the widget closes.
+- **Typed customer:** `PisanoCustomer` (same fields as Android); the dictionary variants keep working and accept common key spellings.
+- **App Store review:** `Pisano.automaticStoreReview = false` leaves the review prompt to your app.
+- **Swift 6:** the SDK is built in the Swift 6 language mode; apps in that mode use it without warnings.
+- **Breaking:** minimum iOS 15.0; Swift renames `.initSucces` → `.initSuccess`, `.surveyPassive` → `.channelPassive`; some results changed.
+- Full notes and migration steps: [RELEASE_NOTES_2.0.0.md](./RELEASE_NOTES_2.0.0.md).
 
 ## Pisano Feedback iOS SDK — v1.1.0 Release Notes
 
@@ -262,12 +276,16 @@ Pisano.healthCheck { ok in
 - ✅ **Multi-language**: Provide `language`
 - ✅ **Custom title**: Provide `NSAttributedString` title
 - ✅ **Multi-survey support**: Boot uses a default `code`; `show` / `healthCheck` can override it per call
+- ✅ **Events**: `Pisano.subscribe` — opened, submitted, store review, closed (with the reason)
+- ✅ **Typed customer**: `PisanoCustomer`
+- ✅ **Store review control**: `Pisano.automaticStoreReview`
+- ✅ **Swift 6 ready**: completions and event handlers are `@MainActor`, SDK types are `Sendable`
 
 ## 📱 Requirements
 
-- **SDK**: iOS 12.0+
-- **Sample apps (this repo)**: iOS 15.0+ (deployment target; Xcode 27 builds only for iOS 15.0 and above)
-- Xcode 16.0+ to build the sample apps
+- **SDK 2.0**: iOS 15.0+ (apps that still support iOS 12–14 can stay on SDK 1.1.0)
+- **Sample apps (this repo)**: iOS 15.0+, Swift 6 language mode
+- Xcode 16.0+, Swift 5.9+
 
 ## 📦 Installation
 
@@ -275,7 +293,7 @@ Pisano.healthCheck { ok in
 
 1. In Xcode: **File → Add Package Dependencies...**
 2. Package URL: `https://github.com/Pisano/pisano-ios.git`
-3. Version rule: **Up to Next Major** → **1.1.0**
+3. Version rule: **Up to Next Major** → **2.0.0**
 4. Add product **`PisanoFeedback`** to your app target
 
 > Note: This repository’s sample apps are already configured with SPM.
@@ -283,11 +301,11 @@ Pisano.healthCheck { ok in
 ### CocoaPods (optional)
 
 ```ruby
-platform :ios, '12.0'
+platform :ios, '15.0'
 use_frameworks!
 
 target 'YourApp' do
-  pod 'Pisano', '~> 1.1'
+  pod 'Pisano', '~> 2.0'
 end
 ```
 
@@ -517,7 +535,8 @@ Displays the widget.
 Swift signature:
 
 ```swift
-Pisano.show(mode:title:language:customer:payload:code:completion:)
+Pisano.show(mode:title:language:customer:payload:code:dismissOnDrag:completion:)
+Pisano.show(mode:title:language:pisanoCustomer:payload:code:dismissOnDrag:completion:)   // typed customer (2.0+)
 ```
 
 Minimal call (explicit optional `code`):
@@ -531,7 +550,8 @@ Pisano.show(code: nil) { status in
 Objective‑C selector:
 
 ```objc
-+ (PisanoTask *)showWithMode:title:language:customer:payload:code:completion:;   // returns a cancellable task (1.1.0+)
++ (PisanoTask *)showWithMode:title:language:customer:payload:code:dismissOnDrag:completion:;         // returns a cancellable task
++ (PisanoTask *)showWithMode:title:language:pisanoCustomer:payload:code:dismissOnDrag:completion:;   // typed customer (2.0+)
 ```
 
 ### `Pisano.healthCheck()`
@@ -597,6 +617,36 @@ Objective‑C selector:
 ```objc
 + (void)clear;
 ```
+
+### `Pisano.subscribe()` (2.0+)
+
+Events of the surveys shown by `show`, delivered on the main thread before the `show` completion. Keep the returned subscription and call `cancel()` to stop.
+
+```swift
+let subscription = Pisano.subscribe { event in
+    switch event.type {
+    case .opened: break
+    case .feedbackSubmitted: print("submitted, chat: \(event.hasChat)")
+    case .redirectedToStore: print("store review, asked by SDK: \(event.handledBySDK)")
+    case .closed: print("closed, reason: \(event.closeReason.rawValue)")
+    @unknown default: break
+    }
+}
+```
+
+### `PisanoCustomer` (2.0+)
+
+Typed customer fields; a misspelled field is a compile error instead of data that never arrives.
+
+```swift
+let customer = PisanoCustomer(name: "Ada", email: "ada@example.com", phoneNumber: "+90555…",
+                              externalId: "CRM-1", customAttributes: ["plan": "gold"])
+Pisano.show(mode: .bottomSheet, pisanoCustomer: customer) { status in }
+```
+
+### `Pisano.automaticStoreReview` (2.0+)
+
+`true` by default: when a survey redirects to the store review flow the SDK asks for the App Store review prompt. Set it to `false` to do it yourself on the `redirectedToStore` event (`handledBySDK` is `false`).
 
 ### 🧵 Threading, Timeout and Cancellation
 
