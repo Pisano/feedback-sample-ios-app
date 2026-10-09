@@ -4,13 +4,6 @@ import os.log
 
 @MainActor
 final class FeedbackManager {
-    /// How the screen passes the customer: the dictionary or the typed
-    /// `PisanoCustomer` variant of `Pisano.show`.
-    enum Customer {
-        case dictionary([String: Any]?)
-        case typed(PisanoCustomer)
-    }
-
     private init() { }
 
     static let shared = FeedbackManager()
@@ -28,23 +21,21 @@ final class FeedbackManager {
     func showFlow(mode: ViewMode = .default,
                   title: NSAttributedString? = nil,
                   language: String? = nil,
-                  customer: Customer = .dictionary(nil),
+                  customer: PisanoCustomer? = nil,
                   payload: [String: String]? = nil,
                   code: String? = nil,
                   dismissOnDrag: Bool = false,
                   completion: (@MainActor @Sendable (CloseStatus) -> Void)? = nil) {
-        let isTyped: Bool
-        if case .typed = customer { isTyped = true } else { isTyped = false }
         os_log("""
                Pisano.show requested. mode=%{public}@ dismissOnDrag=%{public}@ hasTitle=%{public}@ \
-               typedCustomer=%{public}@ hasPayload=%{public}@ hasCodeOverride=%{public}@
+               hasCustomer=%{public}@ hasPayload=%{public}@ hasCodeOverride=%{public}@
                """,
                log: log,
                type: .info,
                String(describing: mode),
                dismissOnDrag ? "true" : "false",
                title == nil ? "false" : "true",
-               isTyped ? "true" : "false",
+               customer == nil ? "false" : "true",
                payload == nil ? "false" : "true",
                code == nil ? "false" : "true")
 
@@ -53,14 +44,8 @@ final class FeedbackManager {
             os_log("Pisano.show callback. status=%{public}@", log: log, type: .info, status.description)
             completion?(status)
         }
-        switch customer {
-        case .dictionary(let dictionary):
-            Pisano.show(mode: mode, title: title, language: language, customer: dictionary,
-                        payload: payload, code: code, dismissOnDrag: dismissOnDrag, completion: onResult)
-        case .typed(let typed):
-            Pisano.show(mode: mode, title: title, language: language, pisanoCustomer: typed,
-                        payload: payload, code: code, dismissOnDrag: dismissOnDrag, completion: onResult)
-        }
+        Pisano.show(mode: mode, title: title, language: language, pisanoCustomer: customer,
+                    payload: payload, code: code, dismissOnDrag: dismissOnDrag, completion: onResult)
     }
     
     func clear() {

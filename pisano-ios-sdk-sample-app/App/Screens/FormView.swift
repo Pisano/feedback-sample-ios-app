@@ -38,7 +38,6 @@ struct FormView: View {
                                     text: $viewModel.plan)
                 }
 
-                Toggle("Send as PisanoCustomer", isOn: $viewModel.typedCustomer)
                 
                 CustomTextField(title: .title,
                                 icon: Image(systemName: "pencil"),

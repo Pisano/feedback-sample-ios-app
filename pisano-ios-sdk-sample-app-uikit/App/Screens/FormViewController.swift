@@ -19,7 +19,6 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
 
     private let modeControl = UISegmentedControl(items: ["Default", "BottomSheet"])
     private let dismissOnDragControl = UISegmentedControl(items: ["Drag off", "Drag on"])
-    private let customerControl = UISegmentedControl(items: ["Dictionary", "PisanoCustomer"])
     private let storeReviewControl = UISegmentedControl(items: ["SDK asks", "App asks"])
     private let eventsLabel = UILabel()
     private var events: [String] = []
@@ -143,9 +142,6 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
 
         addLabeledControl("Dismiss on drag (bottom sheet)", control: dismissOnDragControl)
         dismissOnDragControl.selectedSegmentIndex = 0
-
-        addLabeledControl("Send the customer as", control: customerControl)
-        customerControl.selectedSegmentIndex = 1
 
         // Pisano.automaticStoreReview: with "App asks" the SDK only sends the
         // redirectedToStore event and this screen asks for the prompt itself.
@@ -342,22 +338,8 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
         }
     }
 
-    /// The customer as a dictionary: the keys are checked at run time, and an
-    /// unknown one is logged and dropped.
-    private func customerDictionary() -> [String: Any]? {
-        var customer: [String: Any] = [:]
-        customer.addIfNotEmpty(key: "email", value: emailField.textField.text)
-        customer.addIfNotEmpty(key: "name", value: nameField.textField.text)
-        customer.addIfNotEmpty(key: "phoneNumber", value: phoneField.textField.text)
-        customer.addIfNotEmpty(key: "externalId", value: externalIdField.textField.text)
-        if let plan = planField.textField.text.nonEmpty {
-            customer["customAttributes"] = ["plan": plan]
-        }
-        return customer.isEmpty ? nil : customer
-    }
-
-    /// The same customer with typed fields: a misspelled field does not compile.
-    private func typedCustomer() -> PisanoCustomer {
+    /// The customer from the form. Empty fields are not sent.
+    private func formCustomer() -> PisanoCustomer {
         PisanoCustomer(name: nameField.textField.text.nonEmpty,
                        email: emailField.textField.text.nonEmpty,
                        phoneNumber: phoneField.textField.text.nonEmpty,
@@ -366,9 +348,7 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
     }
 
     private func performShow() {
-        let customer: FeedbackManager.Customer = customerControl.selectedSegmentIndex == 1
-            ? .typed(typedCustomer())
-            : .dictionary(customerDictionary())
+        let customer = formCustomer()
 
         let language = PisanoSDKConfig.language.isEmpty ? nil : PisanoSDKConfig.language
         let dismissOnDrag = selectedDismissOnDrag()

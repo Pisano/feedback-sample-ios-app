@@ -10,8 +10,6 @@ class FormViewModel: ObservableObject {
     @Published var phone = ""
     @Published var externalId = ""
     @Published var plan = ""
-    /// Send the customer as the typed `PisanoCustomer` instead of a dictionary.
-    @Published var typedCustomer = true
     /// `Pisano.automaticStoreReview`: off, the app asks for the review prompt
     /// itself on the `redirectedToStore` event.
     @Published var automaticStoreReview = Pisano.automaticStoreReview {
@@ -45,21 +43,7 @@ class FormViewModel: ObservableObject {
         subscription?.cancel()
     }
 
-    /// The customer as a dictionary: keys are checked at run time, and an
-    /// unknown one is logged and dropped.
-    private var customerDictionary: [String: Any]? {
-        var customer: [String: Any] = [:]
-        customer.addIfNotEmpty(key: "email", value: email)
-        customer.addIfNotEmpty(key: "name", value: fullname)
-        customer.addIfNotEmpty(key: "phoneNumber", value: phone)
-        customer.addIfNotEmpty(key: "externalId", value: externalId)
-        if !plan.isEmpty {
-            customer["customAttributes"] = ["plan": plan]
-        }
-        return customer.isEmpty ? nil : customer
-    }
-
-    /// The same customer with typed fields: a misspelled field does not compile.
+    /// The customer from the form. Empty fields are not sent.
     private var pisanoCustomer: PisanoCustomer {
         PisanoCustomer(name: fullname.isEmpty ? nil : fullname,
                        email: email.isEmpty ? nil : email,
@@ -86,7 +70,7 @@ class FormViewModel: ObservableObject {
 
         preflightStatus = "HealthCheck: running..."
         let language = PisanoSDKConfig.language.isEmpty ? nil : PisanoSDKConfig.language
-        let customer: FeedbackManager.Customer = typedCustomer ? .typed(pisanoCustomer) : .dictionary(customerDictionary)
+        let customer = pisanoCustomer
         // SDK completions are delivered on the main thread.
         Pisano.healthCheck(language: language) { isHealthy in
             guard isHealthy else {
