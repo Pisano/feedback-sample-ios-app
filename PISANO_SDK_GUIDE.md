@@ -103,14 +103,14 @@ If a survey is configured to show only once per user, subsequent calls return `d
 
 ## iOS (Native — Swift / Objective-C)
 
-**SDK repository:** [github.com/Pisano/pisano-ios](https://github.com/Pisano/pisano-ios) — recommended **`PisanoFeedback` 1.1.0**
+**SDK repository:** [github.com/Pisano/pisano-ios](https://github.com/Pisano/pisano-ios) — recommended **`PisanoFeedback` 2.0.0**
 **Sample app:** [github.com/Pisano/feedback-sample-ios-app](https://github.com/Pisano/feedback-sample-ios-app) — open **`pisano-ios-sdk-sample-app-uikit`** for the **recommended UIKit** reference; a SwiftUI sample is included too.
 
 ### Requirements
 
-- iOS 12.0+
-- Xcode 12.0+
-- Swift 5.0+ (Objective-C also supported)
+- iOS 15.0+ (apps that still support iOS 12–14 can stay on 1.1.0)
+- Xcode 16.0+
+- Swift 5.9+, Swift 6 language mode supported (Objective-C also supported)
 
 ### Installation
 
@@ -123,7 +123,7 @@ If a survey is configured to show only once per user, subsequent calls return `d
 https://github.com/Pisano/pisano-ios.git
 ```
 
-3. Set version rule: **Up to Next Major** → **1.1.0**
+3. Set version rule: **Up to Next Major** → **2.0.0**
 4. Select the **`PisanoFeedback`** product and add it to your app target.
 
 #### CocoaPods
@@ -131,11 +131,11 @@ https://github.com/Pisano/pisano-ios.git
 Add to your `Podfile`:
 
 ```ruby
-platform :ios, '12.0'
+platform :ios, '15.0'
 use_frameworks!
 
 target 'YourApp' do
-  pod 'Pisano', '~> 1.1'
+  pod 'Pisano', '~> 2.0'
 end
 ```
 
@@ -184,12 +184,11 @@ Pisano.show(
     mode: .bottomSheet,                                          // .default or .bottomSheet
     title: NSAttributedString(string: "We Value Your Feedback"), // optional
     language: "en",                                              // optional
-    customer: [                                                  // optional
-        "name": "John Doe",
-        "email": "john@example.com",
-        "phoneNumber": "+1234567890",
-        "externalId": "CRM-12345"
-    ],
+    pisanoCustomer: PisanoCustomer(name: "John Doe",             // optional
+                                   email: "john@example.com",
+                                   phoneNumber: "+1234567890",
+                                   externalId: "CRM-12345",
+                                   customAttributes: ["plan": "gold"]),
     payload: ["source": "app", "screen": "home"],                // optional
     code: "ANOTHER_SURVEY_CODE",                                 // optional override
     dismissOnDrag: false                                         // optional — swipe dismiss when .bottomSheet
@@ -198,11 +197,23 @@ Pisano.show(
 }
 
 
+// The customer is a PisanoCustomer (2.0+): fixed fields, same as Android, so a
+// misspelled field does not compile. The 1.x customer dictionary is gone.
+
+// Events (2.0+): what happened while the survey was on screen
+let subscription = Pisano.subscribe { event in
+    print("Event: \(event.type.rawValue), close reason: \(event.closeReason.rawValue)")
+}
+
+// Leave the App Store review prompt to your app (2.0+)
+Pisano.automaticStoreReview = false
+
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 3. HEALTH CHECK — verify reachability before show
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Pisano.healthCheck(language: "en", customer: nil, payload: nil, code: nil) { ok in
+Pisano.healthCheck(language: "en", pisanoCustomer: nil, payload: nil, code: nil) { ok in
     if ok {
         Pisano.show { status in print(status.description) }
     } else {
@@ -217,7 +228,7 @@ Pisano.healthCheck(language: "en", customer: nil, payload: nil, code: nil) { ok 
 
 Pisano.track(event: "purchase_completed",
             payload: ["product_id": "PROD-123"],
-            customer: ["externalId": "USER-456"],
+            pisanoCustomer: PisanoCustomer(externalId: "USER-456"),
             language: "en") { status in
     print("Track status: \(status.description)")
 }
@@ -250,17 +261,24 @@ Pisano.clear()   // then boot again for the new user / tenant
 [Pisano showWithMode:ViewModeBottomSheet
               title:[[NSAttributedString alloc] initWithString:@"Feedback"]
            language:@"en"
-           customer:@{@"externalId": @"USER-123"}
+     pisanoCustomer:[[PisanoCustomer alloc] initWithName:nil email:nil phoneNumber:nil
+                                              externalId:@"USER-123" customAttributes:nil]
             payload:@{@"source": @"app"}
                code:nil
+      dismissOnDrag:NO
          completion:^(enum CloseStatus status) {
-    NSLog(@"Show: %ld", (long)status);
+    NSLog(@"Show: %@", [CloseStatusHelper description:status]);
+}];
+
+// Events (2.0+)
+PisanoSubscription *subscription = [Pisano subscribe:^(PisanoEvent *event) {
+    NSLog(@"Event: %ld", (long)event.type);
 }];
 ```
 
-### Threading, timeout and cancellation (1.1.0+)
+### Threading, timeout and cancellation
 
-- Call the SDK from the main thread. No call blocks it; every `completion` arrives asynchronously on the main thread.
+- Call the SDK from the main thread. No call blocks it; every `completion` and event handler arrives asynchronously on the main thread (they are `@MainActor` closures, and the SDK is Swift 6 ready).
 - `Pisano.requestTimeout = 15` sets the network timeout in seconds (default 60).
 - `boot`, `healthCheck`, `show` and `track` return a `PisanoTask`; `task.cancel()` ends the call and calls its completion once (`.initFailed`, `false` or `.none`).
 - `Pisano.clear()` cancels running calls, closes an open survey and removes all SDK data of the session. The full list is in the [pisano-ios README](https://github.com/Pisano/pisano-ios#logout-and-user--tenant-switch).
@@ -797,14 +815,14 @@ Each platform reports status through callbacks. The table below maps the common 
 
 | Status | iOS (`CloseStatus`) | Android (`PisanoActions`) | React Native (`feedbackSDKCallback`) | Flutter (`FeedbackCallback`) | Description |
 |--------|---------------------|---------------------------|--------------------------------------|------------------------------|-------------|
-| Widget opened | — | `OPENED` | `Opened` | `opened` | Widget is visible |
+| Widget opened | `opened` event (`Pisano.subscribe`) | `OPENED` | `Opened` | `opened` | Widget is visible |
 | Widget closed | `.closed` | `CLOSED` | `Closed` | `closed` | User closed the widget |
-| Tapped outside | — | `OUTSIDE` | `Outside` | `outside` | Dismissed by tapping outside |
-| Feedback sent | — | `SEND_FEEDBACK` | `SendFeedback` | `sendFeedback` | Survey submitted |
+| Tapped outside | `.outside` | `OUTSIDE` | `Outside` | `outside` | Dismissed by tapping outside |
+| Feedback sent | `.sendFeedback` | `SEND_FEEDBACK` | `SendFeedback` | `sendFeedback` | Survey submitted |
 | Display rate limited | `.displayRateLimited` | `DISPLAY_RATE_LIMITED` | `DisplayRateLimited` | — | Skipped due to `display_rate` throttling |
 | Display once | `.displayOnce` | `DISPLAY_ONCE` | `DisplayOnce` | `displayOnce` | Already shown once, won't repeat |
-| Channel passive | — | `CHANNEL_PASSIVE` | `SurveyPassive` | — | Channel is in passive state |
-| Health check failed | — | — | `HealthCheckFailed` | — | SDK initialization issue |
+| Channel passive | `.channelPassive` | `CHANNEL_PASSIVE` | `SurveyPassive` | — | Channel is in passive state |
+| Health check failed | `healthCheck` → `false` | — | `HealthCheckFailed` | — | SDK initialization issue |
 
 ---
 
@@ -830,7 +848,7 @@ Each platform reports status through callbacks. The table below maps the common 
 
 | Platform | SDK | Latest version | Package manager |
 |----------|-----|----------------|-----------------|
-| iOS | `PisanoFeedback` | 1.1.0 | SPM / CocoaPods |
+| iOS | `PisanoFeedback` | 2.0.0 | SPM / CocoaPods |
 | Android | `co.pisano:feedback` | 1.3.31 | Gradle (Maven Central) |
 | React Native | `feedback-react-native-sdk` | 0.2.15 | npm / yarn |
 | Flutter | `feedback_flutter_sdk` | 0.0.17 | Git dependency (pubspec) |

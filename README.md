@@ -11,20 +11,34 @@ Pisano Feedback iOS SDK helps you collect surveys and user feedback in your iOS 
 - **UIKit (Swift) — recommended baseline**: `pisano-ios-sdk-sample-app-uikit/pisano-ios-sdk-sample-app.xcodeproj`
 - **SwiftUI sample**: `pisano-ios-sdk-sample-app/pisano-ios-sdk-sample-app.xcodeproj`
 
-SDK module/product name used by these samples: **`PisanoFeedback`** (version **1.1.0**)
+SDK module/product name used by these samples: **`PisanoFeedback`** (version **2.0.0**)
 
-## Bottom sheet `dismissOnDrag` (sample UI)
+## What the form screen shows
 
-Both sample projects include **Dismiss on drag (Off/On)** on the form screen:
+Both sample projects have the same options on the form screen (UIKit: segmented controls, SwiftUI: toggles):
 
-| Project | UI control |
-|---------|------------|
-| `pisano-ios-sdk-sample-app-uikit` | Segmented control |
-| `pisano-ios-sdk-sample-app` (SwiftUI) | Toggle |
+| Option | SDK API |
+|--------|---------|
+| View mode, custom title, title color / font | `Pisano.show(mode:title:…)` |
+| Dismiss on drag (bottom sheet) | `Pisano.show(…, dismissOnDrag:)` |
+| Customer as **`PisanoCustomer`**, with a `plan` custom attribute | `show(pisanoCustomer:)` |
+| Store review prompt: **SDK asks** / **App asks** | `Pisano.automaticStoreReview`; with "App asks" the app calls `SKStoreReviewController` on the `redirectedToStore` event |
+| Event log (`opened`, `feedbackSubmitted`, `redirectedToStore`, `closed (reason)`) | `Pisano.subscribe` |
+| Result line | the `show` completion (`CloseStatus`) |
 
-Value is forwarded via `FeedbackManager.showFlow(..., dismissOnDrag:)` → `Pisano.show(...)`.
+The calls go through `FeedbackManager.showFlow(…)` → `Pisano.show(…)`. Both apps build in the Swift 6 language mode.
 
-Details: [RELEASE_NOTES_1.0.21.md](./RELEASE_NOTES_1.0.21.md)
+## Pisano Feedback iOS SDK — v2.0.0 Release Notes
+
+### What's new in v2.0.0
+
+- **Events:** `Pisano.subscribe` reports `opened`, `feedbackSubmitted`, `redirectedToStore` and `closed` (with the reason) before the `show` completion.
+- **One result per call:** once the survey was submitted the result is `.sendFeedback`, however the widget closes.
+- **Typed customer:** the customer is passed as `PisanoCustomer` (fixed fields, same as Android) instead of a dictionary, so a misspelled field does not compile.
+- **App Store review:** `Pisano.automaticStoreReview = false` leaves the review prompt to your app.
+- **Swift 6:** the SDK is built in the Swift 6 language mode; apps in that mode use it without warnings.
+- **Breaking:** minimum iOS 15.0; Swift renames `.initSucces` → `.initSuccess`, `.surveyPassive` → `.channelPassive`; some results changed.
+- Full notes and migration steps: [RELEASE_NOTES_2.0.0.md](./RELEASE_NOTES_2.0.0.md).
 
 ## Pisano Feedback iOS SDK — v1.1.0 Release Notes
 
@@ -106,7 +120,7 @@ Pisano.show(
     mode: ViewMode = .default,                     // optional — .default or .bottomSheet
     title: NSAttributedString? = nil,              // optional — toolbar title
     language: String? = nil,                       // optional — e.g. "en", "tr"
-    customer: [String: Any]? = nil,                // optional — customer info
+    pisanoCustomer: PisanoCustomer? = nil,         // optional — customer info
     payload: [String: Any]? = nil,                 // optional — custom key-value data
     code: String? = nil,                           // optional — overrides boot code for this call
     dismissOnDrag: Bool = false,                   // optional — swipe-down dismiss when .bottomSheet
@@ -125,7 +139,7 @@ Pisano.show(
 ```swift
 Pisano.healthCheck(
     language: String? = nil,                       // optional
-    customer: [String: Any]? = nil,                // optional
+    pisanoCustomer: PisanoCustomer? = nil,         // optional
     payload: [String: Any]? = nil,                 // optional
     code: String? = nil,                           // optional — overrides boot code for this call
     completion: ((Bool) -> Void)? = nil            // optional — true if reachable
@@ -258,16 +272,20 @@ Pisano.healthCheck { ok in
 - ✅ **Objective‑C compatibility**
 - ✅ **View modes**: Full screen (`.default`) and bottom sheet (`.bottomSheet`)
 - ✅ **Health check**: Preflight API reachability
-- ✅ **Customer data**: Provide `customer` and `payload`
+- ✅ **Customer data**: Provide `pisanoCustomer` and `payload`
 - ✅ **Multi-language**: Provide `language`
 - ✅ **Custom title**: Provide `NSAttributedString` title
 - ✅ **Multi-survey support**: Boot uses a default `code`; `show` / `healthCheck` can override it per call
+- ✅ **Events**: `Pisano.subscribe` — opened, submitted, store review, closed (with the reason)
+- ✅ **Typed customer**: `PisanoCustomer`
+- ✅ **Store review control**: `Pisano.automaticStoreReview`
+- ✅ **Swift 6 ready**: completions and event handlers are `@MainActor`, SDK types are `Sendable`
 
 ## 📱 Requirements
 
-- **SDK**: iOS 12.0+
-- **Sample apps (this repo)**: iOS 15.0+ (deployment target; Xcode 27 builds only for iOS 15.0 and above)
-- Xcode 16.0+ to build the sample apps
+- **SDK 2.0**: iOS 15.0+ (apps that still support iOS 12–14 can stay on SDK 1.1.0)
+- **Sample apps (this repo)**: iOS 15.0+, Swift 6 language mode
+- Xcode 16.0+, Swift 5.9+
 
 ## 📦 Installation
 
@@ -275,7 +293,7 @@ Pisano.healthCheck { ok in
 
 1. In Xcode: **File → Add Package Dependencies...**
 2. Package URL: `https://github.com/Pisano/pisano-ios.git`
-3. Version rule: **Up to Next Major** → **1.1.0**
+3. Version rule: **Up to Next Major** → **2.0.0**
 4. Add product **`PisanoFeedback`** to your app target
 
 > Note: This repository’s sample apps are already configured with SPM.
@@ -283,11 +301,11 @@ Pisano.healthCheck { ok in
 ### CocoaPods (optional)
 
 ```ruby
-platform :ios, '12.0'
+platform :ios, '15.0'
 use_frameworks!
 
 target 'YourApp' do
-  pod 'Pisano', '~> 1.1'
+  pod 'Pisano', '~> 2.0'
 end
 ```
 
@@ -426,12 +444,10 @@ import PisanoFeedback
 Pisano.show(mode: .bottomSheet,
            title: NSAttributedString(string: "We Value Your Feedback"),
            language: "en",
-           customer: [
-               "name": "John Doe",
-               "email": "john@example.com",
-               "phoneNumber": "+1234567890",
-               "externalId": "CRM-12345"
-           ],
+           pisanoCustomer: PisanoCustomer(name: "John Doe",
+                                          email: "john@example.com",
+                                          phoneNumber: "+1234567890",
+                                          externalId: "CRM-12345"),
            payload: ["source": "app", "screen": "home"],
            code: "ANOTHER_SURVEY_CODE") { status in  // optional override; use nil for boot default
     print(status.description)
@@ -446,12 +462,11 @@ Objective‑C (boot default — explicit `code: nil`):
 [Pisano showWithMode:ViewModeBottomSheet
               title:[[NSAttributedString alloc] initWithString:@"We Value Your Feedback"]
            language:@"en"
-           customer:@{
-               @"name": @"John Doe",
-               @"email": @"john@example.com",
-               @"phoneNumber": @"+1234567890",
-               @"externalId": @"CRM-12345"
-           }
+     pisanoCustomer:[[PisanoCustomer alloc] initWithName:@"John Doe"
+                                                   email:@"john@example.com"
+                                             phoneNumber:@"+1234567890"
+                                              externalId:@"CRM-12345"
+                                        customAttributes:nil]
             payload:@{
                @"source": @"app",
                @"screen": @"home"
@@ -468,12 +483,11 @@ Objective‑C (per-call override):
 [Pisano showWithMode:ViewModeBottomSheet
               title:[[NSAttributedString alloc] initWithString:@"We Value Your Feedback"]
            language:@"en"
-           customer:@{
-               @"name": @"John Doe",
-               @"email": @"john@example.com",
-               @"phoneNumber": @"+1234567890",
-               @"externalId": @"CRM-12345"
-           }
+     pisanoCustomer:[[PisanoCustomer alloc] initWithName:@"John Doe"
+                                                   email:@"john@example.com"
+                                             phoneNumber:@"+1234567890"
+                                              externalId:@"CRM-12345"
+                                        customAttributes:nil]
             payload:@{
                @"source": @"app",
                @"screen": @"home"
@@ -517,7 +531,8 @@ Displays the widget.
 Swift signature:
 
 ```swift
-Pisano.show(mode:title:language:customer:payload:code:completion:)
+Pisano.show(mode:title:language:pisanoCustomer:payload:code:dismissOnDrag:completion:)
+Pisano.show(mode:title:language:pisanoCustomer:payload:code:dismissOnDrag:completion:)   // typed customer (2.0+)
 ```
 
 Minimal call (explicit optional `code`):
@@ -531,7 +546,8 @@ Pisano.show(code: nil) { status in
 Objective‑C selector:
 
 ```objc
-+ (PisanoTask *)showWithMode:title:language:customer:payload:code:completion:;   // returns a cancellable task (1.1.0+)
++ (PisanoTask *)showWithMode:title:language:pisanoCustomer:payload:code:dismissOnDrag:completion:;         // returns a cancellable task
++ (PisanoTask *)showWithMode:title:language:pisanoCustomer:payload:code:dismissOnDrag:completion:;   // typed customer (2.0+)
 ```
 
 ### `Pisano.healthCheck()`
@@ -543,13 +559,13 @@ Checks API reachability.
 Swift signature:
 
 ```swift
-Pisano.healthCheck(language:customer:payload:code:completion:)
+Pisano.healthCheck(language:pisanoCustomer:payload:code:completion:)
 ```
 
 Objective‑C selector:
 
 ```objc
-+ (PisanoTask *)healthCheckWithLanguage:customer:payload:code:completion:;   // returns a cancellable task (1.1.0+)
++ (PisanoTask *)healthCheckWithLanguage:pisanoCustomer:payload:code:completion:;   // returns a cancellable task (1.1.0+)
 ```
 
 Example (Swift):
@@ -564,7 +580,7 @@ Example (Objective‑C):
 
 ```objc
 [Pisano healthCheckWithLanguage:@"en"
-                     customer:nil
+               pisanoCustomer:nil
                       payload:nil
                          code:nil
                    completion:^(BOOL ok) {
@@ -579,13 +595,13 @@ Tracks an event.
 Swift signature:
 
 ```swift
-Pisano.track(event:payload:customer:language:completion:)
+Pisano.track(event:payload:pisanoCustomer:language:completion:)
 ```
 
 Objective‑C selector:
 
 ```objc
-+ (PisanoTask *)trackWithEvent:payload:customer:language:completion:;   // returns a cancellable task (1.1.0+)
++ (PisanoTask *)trackWithEvent:payload:pisanoCustomer:language:completion:;   // returns a cancellable task (1.1.0+)
 ```
 
 ### `Pisano.clear()`
@@ -597,6 +613,36 @@ Objective‑C selector:
 ```objc
 + (void)clear;
 ```
+
+### `Pisano.subscribe()` (2.0+)
+
+Events of the surveys shown by `show`, delivered on the main thread before the `show` completion. Keep the returned subscription and call `cancel()` to stop.
+
+```swift
+let subscription = Pisano.subscribe { event in
+    switch event.type {
+    case .opened: break
+    case .feedbackSubmitted: print("submitted, chat: \(event.hasChat)")
+    case .redirectedToStore: print("store review, asked by SDK: \(event.handledBySDK)")
+    case .closed: print("closed, reason: \(event.closeReason.rawValue)")
+    @unknown default: break
+    }
+}
+```
+
+### `PisanoCustomer` (2.0+)
+
+Typed customer fields; a misspelled field is a compile error instead of data that never arrives.
+
+```swift
+let customer = PisanoCustomer(name: "Ada", email: "ada@example.com", phoneNumber: "+90555…",
+                              externalId: "CRM-1", customAttributes: ["plan": "gold"])
+Pisano.show(mode: .bottomSheet, pisanoCustomer: customer) { status in }
+```
+
+### `Pisano.automaticStoreReview` (2.0+)
+
+`true` by default: when a survey redirects to the store review flow the SDK asks for the App Store review prompt. Set it to `false` to do it yourself on the `redirectedToStore` event (`handledBySDK` is `false`).
 
 ### 🧵 Threading, Timeout and Cancellation
 
@@ -644,7 +690,7 @@ task.cancel()
 ```
 
 ```objc
-PisanoTask *task = [Pisano healthCheckWithLanguage:nil customer:nil payload:nil code:nil
+PisanoTask *task = [Pisano healthCheckWithLanguage:nil pisanoCustomer:nil payload:nil code:nil
                                         completion:^(BOOL isHealthy) { /* main thread */ }];
 [task cancel];
 ```
@@ -652,7 +698,7 @@ PisanoTask *task = [Pisano healthCheckWithLanguage:nil customer:nil payload:nil 
 #### Known limitations
 
 - `track`'s `completion` is not called when the event is sent or fails yet; it is only called on `cancel()`.
-- Some `show` failures before the widget is presented (for example no boot data or a network error) do not call `completion` yet. Use `cancel()` to end a call you no longer wait for.
+- When the survey is not shown (no boot data, no connection, a failed request, nothing to present on), `show` ends with `.none`. `clear()` ends a `show` at any stage with `.none`, including one about to be presented, which is then not shown.
 
 ### 🔐 Logout and User / Tenant Switch
 
@@ -718,7 +764,7 @@ final class ViewController: UIViewController {
     @IBAction func showFeedback(_ sender: Any) {
         Pisano.show(mode: .bottomSheet,
                    language: "en",
-                   customer: ["externalId": "USER-123"],
+                   pisanoCustomer: PisanoCustomer(externalId: "USER-123"),
                    code: nil) { status in
             print(status.description)
         }
@@ -736,7 +782,7 @@ struct ContentView: View {
     var body: some View {
         Button("Show Feedback") {
             Pisano.show(mode: .bottomSheet,
-                       customer: ["email": "user@example.com"],
+                       pisanoCustomer: PisanoCustomer(email: "user@example.com"),
                        code: nil) { _ in }
         }
     }

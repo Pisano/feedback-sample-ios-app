@@ -14,19 +14,21 @@ final class BackgroundView: UIView {
         super.init(frame: frame)
         isUserInteractionEnabled = false
         backgroundColor = splashColors.first ?? .systemBackground
-
-        // Match SwiftUI sample: rotate splash colors every 1s.
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            self?.tick()
-        }
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    deinit {
+    // Match SwiftUI sample: rotate splash colors every 1s while on screen.
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
         timer?.invalidate()
+        timer = nil
+        guard window != nil else { return }
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.tick() }
+        }
     }
 
     private func tick() {

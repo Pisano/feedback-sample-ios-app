@@ -32,21 +32,21 @@ enum PisanoSDKConfig {
         return required.filter { value($0).isEmpty }
     }
 
-    private static let secrets: [String: Any] = {
+    private static let secrets: [String: String] = {
         guard let url = Bundle.main.url(forResource: "PisanoSecrets", withExtension: "plist"),
               let data = try? Data(contentsOf: url),
               let obj = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil),
               let dict = obj as? [String: Any] else {
             return [:]
         }
-        return dict
+        return dict.compactMapValues { $0 as? String }
     }()
 
     /// Reads from `PisanoSecrets.plist` (if present in app bundle) first, otherwise falls back to app `Info.plist`.
     private static func value(_ key: String) -> String {
-        if let raw = secrets[key] as? String {
-            let v = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !v.isEmpty { return v }
+        if let raw = secrets[key] {
+            let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty { return trimmed }
         }
 
         return (Bundle.main.object(forInfoDictionaryKey: key) as? String)?
