@@ -165,8 +165,8 @@ Pisano.boot(appId: "YOUR_APP_ID",
            code: "YOUR_CODE",               // required
            apiUrl: "https://api.pisano.co",
            feedbackUrl: "https://web.pisano.co/web_feedback",
-           eventUrl: nil) { status in        // optional
-    print("Boot status: \(status.description)")
+           eventUrl: nil) { succeeded in     // optional
+    print("Booted: \(succeeded)")
 }
 
 
@@ -229,8 +229,8 @@ Pisano.healthCheck(language: "en", pisanoCustomer: nil, payload: nil, code: nil)
 Pisano.track(event: "purchase_completed",
             payload: ["product_id": "PROD-123"],
             pisanoCustomer: PisanoCustomer(externalId: "USER-456"),
-            language: "en") { status in
-    print("Track status: \(status.description)")
+            language: "en") { sent in
+    print("Track sent: \(sent)")
 }
 
 
@@ -253,8 +253,8 @@ Pisano.clear()   // then boot again for the new user / tenant
               apiUrl:@"https://api.pisano.co"
          feedbackUrl:@"https://web.pisano.co/web_feedback"
             eventUrl:nil
-          completion:^(enum CloseStatus status) {
-    NSLog(@"Boot: %ld", (long)status);
+          completion:^(BOOL succeeded) {
+    NSLog(@"Booted: %d", succeeded);
 }];
 
 // Show
@@ -279,8 +279,8 @@ PisanoSubscription *subscription = [Pisano subscribe:^(PisanoEvent *event) {
 ### Threading, timeout and cancellation
 
 - Call the SDK from the main thread. No call blocks it; every `completion` and event handler arrives asynchronously on the main thread (they are `@MainActor` closures, and the SDK is Swift 6 ready).
-- `Pisano.requestTimeout = 15` sets the network timeout in seconds (default 60).
-- `boot`, `healthCheck`, `show` and `track` return a `PisanoTask`; `task.cancel()` ends the call and calls its completion once (`.initFailed`, `false` or `.none`).
+- `Pisano.requestTimeout = 15` sets the network timeout in seconds (default 30, as on Android).
+- `boot`, `healthCheck`, `show` and `track` return a `PisanoTask`; `task.cancel()` ends the call and calls its completion once (`false` for `boot` / `healthCheck` / `track`, `.none` for `show`).
 - `Pisano.clear()` cancels running calls, closes an open survey and removes all SDK data of the session. The full list is in the [pisano-ios README](https://github.com/Pisano/pisano-ios#logout-and-user--tenant-switch).
 
 ---
@@ -811,18 +811,20 @@ await feedbackSdk.clear();
 
 ## Callback / Status values
 
-Each platform reports status through callbacks. The table below maps the common statuses across platforms:
+`show()` reports one result per call. The names are the same on every platform (2.0: iOS 2.0, Android 2.0, React Native 0.4, Flutter 0.1):
 
-| Status | iOS (`CloseStatus`) | Android (`PisanoActions`) | React Native (`feedbackSDKCallback`) | Flutter (`FeedbackCallback`) | Description |
-|--------|---------------------|---------------------------|--------------------------------------|------------------------------|-------------|
-| Widget opened | `opened` event (`Pisano.subscribe`) | `OPENED` | `Opened` | `opened` | Widget is visible |
-| Widget closed | `.closed` | `CLOSED` | `Closed` | `closed` | User closed the widget |
-| Tapped outside | `.outside` | `OUTSIDE` | `Outside` | `outside` | Dismissed by tapping outside |
-| Feedback sent | `.sendFeedback` | `SEND_FEEDBACK` | `SendFeedback` | `sendFeedback` | Survey submitted |
-| Display rate limited | `.displayRateLimited` | `DISPLAY_RATE_LIMITED` | `DisplayRateLimited` | — | Skipped due to `display_rate` throttling |
+| Result | iOS (`CloseStatus`) | Android (`CloseStatus`) | React Native (`feedbackSDKCallback`) | Flutter (`FeedbackCallback`) | Description |
+|--------|---------------------|-------------------------|--------------------------------------|------------------------------|-------------|
+| Feedback sent | `.sendFeedback` | `SEND_FEEDBACK` | `SendFeedback` | `sendFeedback` | Survey submitted, however the widget closed afterwards |
+| Closed | `.closed` | `CLOSED` | `Closed` | `closed` | Closed without submitting (close button, back, drag, outside tap, app dismissed it); the `closed` event's `closeReason` says how |
+| No result | `.none` | `NONE` | `None` | `none` | Not shown or no result: not booted, no connection, a failed request, page did not load, `clear()`, cancelled, or another survey was already open |
 | Display once | `.displayOnce` | `DISPLAY_ONCE` | `DisplayOnce` | `displayOnce` | Already shown once, won't repeat |
-| Channel passive | `.channelPassive` | `CHANNEL_PASSIVE` | `SurveyPassive` | — | Channel is in passive state |
-| Health check failed | `healthCheck` → `false` | — | `HealthCheckFailed` | — | SDK initialization issue |
+| Prevent multiple feedback | `.preventMultipleFeedback` | `PREVENT_MULTIPLE_FEEDBACK` | `PreventMultipleFeedback` | `preventMultipleFeedback` | Customer already gave feedback in the period |
+| Channel quota exceeded | `.channelQuotaExceeded` | `CHANNEL_QUOTA_EXCEEDED` | `ChannelQuotaExceeded` | `channelQuotaExceeded` | Channel quota is full |
+| Channel passive | `.channelPassive` | `CHANNEL_PASSIVE` | `ChannelPassive` | `channelPassive` | Channel is passive |
+| Display rate limited | `.displayRateLimited` | `DISPLAY_RATE_LIMITED` | `DisplayRateLimited` | `displayRateLimited` | Skipped due to `display_rate` throttling |
+
+`boot` / `init`, `healthCheck` and `track` report a boolean. What happens while a survey is on screen (opened, submitted, store redirect, how it closed) comes through the event channel: `Pisano.subscribe` (iOS), `PisanoSDK.subscribe` (Android), `feedbackSDKOn` (React Native), `events` (Flutter).
 
 ---
 

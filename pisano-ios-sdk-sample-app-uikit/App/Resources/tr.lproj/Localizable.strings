@@ -38,3 +38,5 @@
 "default" = "Default";
 "bottom_sheet" = "Bottom Sheet";
 "font" = "Yazı Stili";
+"show_twice" = "İki kez göster (2. → none)";
+"track_event" = "Event gönder (track)";

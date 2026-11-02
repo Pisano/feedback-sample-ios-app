@@ -25,6 +25,9 @@ Both sample projects have the same options on the form screen (UIKit: segmented 
 | Store review prompt: **SDK asks** / **App asks** | `Pisano.automaticStoreReview`; with "App asks" the app calls `SKStoreReviewController` on the `redirectedToStore` event |
 | Event log (`opened`, `feedbackSubmitted`, `redirectedToStore`, `closed (reason)`) | `Pisano.subscribe` |
 | Result line | the `show` completion (`CloseStatus`) |
+| Request timeout: **30 s** (default) / 5 s / 60 s | `Pisano.requestTimeout` |
+| **Track event** button, `sent=true/false` | `Pisano.track` (`Bool` completion) |
+| **Show twice** (UIKit): the second call ends with `.none` while the first survey stays open | one survey at a time |
 
 The calls go through `FeedbackManager.showFlow(…)` → `Pisano.show(…)`. Both apps build in the Swift 6 language mode.
 
@@ -37,7 +40,10 @@ The calls go through `FeedbackManager.showFlow(…)` → `Pisano.show(…)`. Bot
 - **Typed customer:** the customer is passed as `PisanoCustomer` (fixed fields, same as Android) instead of a dictionary, so a misspelled field does not compile.
 - **App Store review:** `Pisano.automaticStoreReview = false` leaves the review prompt to your app.
 - **Swift 6:** the SDK is built in the Swift 6 language mode; apps in that mode use it without warnings.
-- **Breaking:** minimum iOS 15.0; Swift renames `.initSucces` → `.initSuccess`, `.surveyPassive` → `.channelPassive`; some results changed.
+- **One survey at a time:** `show()` while a survey is open or about to open ends with `.none` (same rule as Android).
+- **`boot` and `track` report a `Bool`;** `CloseStatus` holds only `show` results.
+- **`Pisano.requestTimeout` defaults to 30 s** (was 60), the same as Android.
+- **Breaking:** minimum iOS 15.0; `boot` / `track` completions take a `Bool`; `CloseStatus` lost `.opened`, `.outside`, `.initSucces` / `.initFailed` and `.healthCheck*`; Swift rename `.surveyPassive` → `.channelPassive`; some results changed.
 - Full notes and migration steps: [RELEASE_NOTES_2.0.0.md](./RELEASE_NOTES_2.0.0.md).
 
 ## Pisano Feedback iOS SDK — v1.1.0 Release Notes
@@ -388,8 +394,8 @@ func application(_ application: UIApplication,
                code: "YOUR_CODE",
                apiUrl: "https://api.pisano.co",
                feedbackUrl: "https://web.pisano.co/web_feedback",
-               eventUrl: nil) { status in
-        print(status.description)
+               eventUrl: nil) { succeeded in
+        print("Pisano booted: \(succeeded)")
     }
 
     return true
@@ -407,8 +413,8 @@ Objective‑C:
               apiUrl:@"https://api.pisano.co"
          feedbackUrl:@"https://web.pisano.co/web_feedback"
             eventUrl:nil
-          completion:^(enum CloseStatus status) {
-    NSLog(@"%@", @(status));
+          completion:^(BOOL succeeded) {
+    NSLog(@"Pisano booted: %d", succeeded);
 }];
 ```
 
@@ -502,13 +508,13 @@ Objective‑C (per-call override):
 
 ### CloseStatus
 
-`CloseStatus` is returned by SDK callbacks.
+`CloseStatus` is the result of `Pisano.show()`, reported once. `boot`, `healthCheck` and `track` report a `Bool`.
 
 For UI/logging, prefer using `status.description` rather than hardcoding enum case names in your app (case names can change between SDK versions).
 
 ### `Pisano.boot()`
 
-Initializes the SDK.
+Initializes the SDK. The completion reports a `Bool`: `true` when the SDK booted, `false` when boot failed (including no connection) or was cancelled.
 
 Swift signature:
 
@@ -590,7 +596,7 @@ Example (Objective‑C):
 
 ### `Pisano.track()`
 
-Tracks an event.
+Tracks an event. The completion reports a `Bool`: `true` when the server accepted the event, `false` when it was not sent (no boot, no `eventUrl`, no connection, a failed request, or cancelled).
 
 Swift signature:
 
@@ -656,7 +662,7 @@ Pisano.show(mode: .bottomSheet, pisanoCustomer: customer) { status in }
 
 #### Timeout
 
-`Pisano.requestTimeout` sets the network timeout, in seconds, for every SDK request. A request fails when the server sends no data for this long. The default is `60`; values `<= 0` reset it to the default. It applies to requests started after it is set.
+`Pisano.requestTimeout` sets the network timeout, in seconds, for every SDK request. A request fails when the server sends no data for this long. The default is `30` (as on Android); values `<= 0` reset it to the default. It applies to requests started after it is set.
 
 ```swift
 Pisano.requestTimeout = 15
@@ -674,10 +680,10 @@ If the call has not finished yet, its network request is cancelled and `completi
 
 | Call | Status on cancel |
 |---|---|
-| `boot` | `.initFailed` |
+| `boot` | `false` |
 | `healthCheck` | `false` |
 | `show` | `.none` (widget is not shown) |
-| `track` | `.none` |
+| `track` | `false` |
 
 If the call has already finished, or `show` has already presented the widget, `cancel()` does nothing. `isCancelled` tells whether the call was cancelled.
 
@@ -707,7 +713,7 @@ Call `Pisano.clear()` when a user logs out or when the app switches to another u
 ```swift
 Pisano.clear()
 Pisano.boot(appId: newAppId, accessKey: newAccessKey, code: newCode,
-            apiUrl: apiUrl, feedbackUrl: feedbackUrl) { status in /* … */ }
+            apiUrl: apiUrl, feedbackUrl: feedbackUrl) { succeeded in /* … */ }
 ```
 
 #### What `clear()` removes

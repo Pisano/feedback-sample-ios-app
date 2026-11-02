@@ -26,6 +26,10 @@ class FormViewModel: ObservableObject {
     @Published var selectedFont: UIFont = .preferredFont(forTextStyle: .title1)
     @Published var showSelectFont = false
     @Published var preflightStatus: String = ""
+    /// `Pisano.requestTimeout` in seconds; 30 is the default on iOS and Android.
+    @Published var requestTimeout: TimeInterval = Pisano.requestTimeout {
+        didSet { Pisano.requestTimeout = requestTimeout }
+    }
     
     var colors: [Color] = [.blue, .green, .yellow, .darkGray, .lightGray, .black, .gray, .orange, .pink, .purple, .red]
     var fonts: [UIFont] = [.preferredFont(forTextStyle: .largeTitle), .preferredFont(forTextStyle: .title1), .preferredFont(forTextStyle: .title2), .preferredFont(forTextStyle: .title3), .preferredFont(forTextStyle: .headline), .preferredFont(forTextStyle: .subheadline), .preferredFont(forTextStyle: .body), .preferredFont(forTextStyle: .callout), .preferredFont(forTextStyle: .footnote), .preferredFont(forTextStyle: .caption1), .preferredFont(forTextStyle: .caption2)]
@@ -124,6 +128,16 @@ class FormViewModel: ObservableObject {
         }
     }
     
+    /// track reports whether the server accepted the event.
+    func track() {
+        preflightStatus = "Track: sending..."
+        let language = PisanoSDKConfig.language.isEmpty ? nil : PisanoSDKConfig.language
+        Pisano.track(event: "sample_app_event", payload: ["source": "SwiftUI sample"],
+                     pisanoCustomer: pisanoCustomer, language: language) { sent in
+            self.preflightStatus = "Track: sent=\(sent)"
+        }
+    }
+
     func clear() {
         sdkCallback = .none
         preflightStatus = ""

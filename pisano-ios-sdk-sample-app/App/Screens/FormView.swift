@@ -90,6 +90,14 @@ struct FormView: View {
                     .font(.footnote)
                     .foregroundColor(.secondary)
                 
+                Text("Request timeout")
+                Picker("Request timeout", selection: $viewModel.requestTimeout) {
+                    Text("30 s").tag(TimeInterval(30))
+                    Text("5 s").tag(TimeInterval(5))
+                    Text("60 s").tag(TimeInterval(60))
+                }
+                .pickerStyle(.segmented)
+
                 Text(.actionStatus)
                 Text(viewModel.sdkCallback.description)
                 Text(viewModel.preflightStatus)
@@ -100,6 +108,10 @@ struct FormView: View {
                     viewModel.feedback()
                 }
                 
+                AppButton(title: "Track event", action: {
+                    viewModel.track()
+                }, backgroundColor: .clear)
+
                 AppButton(title: .clear, action:  {
                     viewModel.clear()
                 }, backgroundColor: .clear)

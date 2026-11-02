@@ -20,6 +20,7 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
     private let modeControl = UISegmentedControl(items: ["Default", "BottomSheet"])
     private let dismissOnDragControl = UISegmentedControl(items: ["Drag off", "Drag on"])
     private let storeReviewControl = UISegmentedControl(items: ["SDK asks", "App asks"])
+    private let timeoutControl = UISegmentedControl(items: ["Timeout 30s", "Timeout 5s", "Timeout 60s"])
     private let eventsLabel = UILabel()
     private var events: [String] = []
     private var eventSubscription: PisanoSubscription?
@@ -157,6 +158,8 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
         stack.addArrangedSubview(AppButton(titleKey: "get_feedback", onTap: { [weak self] in
             self?.didTapShow()
         }))
+
+        addScenarioControls()
 
         stack.addArrangedSubview(AppButton(titleKey: "clear", backgroundColor: .clear, onTap: { [weak self] in
             self?.didTapClear()
@@ -392,4 +395,52 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
     }
 }
 
+// MARK: - 2.0 scenarios: request timeout, one survey at a time, track result
 
+extension FormViewController {
+    fileprivate func addScenarioControls() {
+        // Pisano.requestTimeout: 30 s is the default on iOS and Android.
+        addLabeledControl("Request timeout", control: timeoutControl)
+        timeoutControl.selectedSegmentIndex = 0
+        timeoutControl.addTarget(self, action: #selector(didChangeTimeout), for: .valueChanged)
+
+        // One survey at a time: the second show() ends with .none.
+        stack.addArrangedSubview(AppButton(titleKey: "show_twice", backgroundColor: .clear, onTap: { [weak self] in
+            self?.didTapShowTwice()
+        }))
+
+        stack.addArrangedSubview(AppButton(titleKey: "track_event", backgroundColor: .clear, onTap: { [weak self] in
+            self?.didTapTrack()
+        }))
+    }
+
+    @objc fileprivate func didChangeTimeout() {
+        Pisano.requestTimeout = [30, 5, 60][timeoutControl.selectedSegmentIndex]
+    }
+
+    /// Two show() calls back to back: the first opens the survey, the second
+    /// ends with .none right away (one survey at a time, as on Android).
+    fileprivate func didTapShowTwice() {
+        guard PisanoSDKConfig.isValid else {
+            statusLabel.text = "Status: missing config (set Info.plist keys or PisanoSecrets.plist)"
+            return
+        }
+        performShow()
+        let language = PisanoSDKConfig.language.isEmpty ? nil : PisanoSDKConfig.language
+        // The first survey's own result replaces this line when it closes.
+        Pisano.show(mode: selectedMode(), language: language, dismissOnDrag: selectedDismissOnDrag()) { [weak self] second in
+            self?.statusLabel.text = "Status: 2nd show: \(second.description) (1st survey stays open)"
+        }
+    }
+
+    /// track reports whether the server accepted the event.
+    fileprivate func didTapTrack() {
+        statusLabel.text = "Status: tracking…"
+        let language = PisanoSDKConfig.language.isEmpty ? nil : PisanoSDKConfig.language
+        Pisano.track(event: "test_app_event", payload: ["source": "TestApp"],
+                     pisanoCustomer: formCustomer(), language: language) { [weak self] sent in
+            self?.statusLabel.text = "Status: track sent=\(sent)"
+        }
+    }
+
+}
