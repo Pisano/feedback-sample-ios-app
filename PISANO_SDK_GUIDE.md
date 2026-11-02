@@ -292,9 +292,9 @@ PisanoSubscription *subscription = [Pisano subscribe:^(PisanoEvent *event) {
 
 ### Requirements
 
-- minSdk 21+
-- Kotlin 1.6+ or Java 8+
-- Android Gradle Plugin 7.0+
+- minSdk 21+, compileSdk 34+
+- Kotlin or Java 8+
+- AndroidX
 
 ### Installation
 
@@ -315,28 +315,24 @@ In your **app-level** `build.gradle`:
 
 ```gradle
 dependencies {
-    implementation 'co.pisano:feedback:1.3.31'
+    implementation 'co.pisano:feedback:2.0.0'
 }
 ```
 
-Add permissions to `AndroidManifest.xml`:
+> The coordinate is `co.pisano:feedback`. The old `co.pisano.feedback:feedback` coordinate is no longer updated.
 
-```xml
-<uses-permission android:name="android.permission.INTERNET" />
-<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-```
-
-Sync your project and rebuild.
+The SDK's manifest adds `INTERNET` and `ACCESS_NETWORK_STATE`; it does not set `android:allowBackup`.
 
 ### Usage
 
 ```kotlin
-import co.pisano.feedback.managers.PisanoSDK
-import co.pisano.feedback.managers.PisanoSDKManager
-import co.pisano.feedback.data.helper.ActionListener
-import co.pisano.feedback.data.helper.PisanoActions
+import co.pisano.feedback.data.helper.CloseStatus
+import co.pisano.feedback.data.helper.PisanoEventType
 import co.pisano.feedback.data.helper.ViewMode
 import co.pisano.feedback.data.model.PisanoCustomer
+import co.pisano.feedback.data.model.Title
+import co.pisano.feedback.managers.PisanoSDK
+import co.pisano.feedback.managers.PisanoSDKManager
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 1. INIT — call once at app startup (Application class)
@@ -348,34 +344,34 @@ val manager = PisanoSDKManager.Builder(context)
     .setCode("YOUR_CODE")                            // required
     .setApiUrl("https://api.pisano.co")
     .setFeedbackUrl("https://web.pisano.co/web_feedback")
-    .setEventUrl("https://track.pisano.co/track")    // optional
+    .setEventUrl("https://track.pisano.co/track")    // optional, needed for track
     .setDebug(BuildConfig.DEBUG)                      // verbose logs in debug
-    .setCloseStatusCallback(object : ActionListener {
-        override fun action(action: PisanoActions) {
-            when (action) {
-                PisanoActions.INIT_SUCCESS -> Log.d("Pisano", "SDK init OK")
-                PisanoActions.INIT_FAILED  -> Log.e("Pisano", "SDK init failed")
-                PisanoActions.CLOSED       -> Log.d("Pisano", "Widget closed")
-                PisanoActions.SEND_FEEDBACK -> Log.d("Pisano", "Feedback sent")
-                PisanoActions.DISPLAY_RATE_LIMITED -> Log.d("Pisano", "Rate limited")
-                PisanoActions.DISPLAY_ONCE -> Log.d("Pisano", "Already shown once")
-                else -> {}
-            }
-        }
-    })
     .build()
 
-PisanoSDK.init(manager)
+PisanoSDK.init(manager) { succeeded ->
+    Log.d("Pisano", "init: $succeeded")            // false: wrong credentials/URL or no connection
+}
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 2. SHOW — display the feedback widget
+// 2. EVENTS (optional) — what happens while a survey is on screen
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-// Minimal — uses init code, default full-screen mode
-PisanoSDK.show()
+val subscription = PisanoSDK.subscribe { event ->
+    when (event.type) {
+        PisanoEventType.OPENED -> Log.d("Pisano", "opened ${event.code}")
+        PisanoEventType.FEEDBACK_SUBMITTED -> Log.d("Pisano", "submitted, chat=${event.hasChat}")
+        PisanoEventType.REDIRECTED_TO_STORE -> Log.d("Pisano", "store, handledBySDK=${event.handledBySDK}")
+        PisanoEventType.CLOSED -> Log.d("Pisano", "closed: ${event.closeReason}")
+    }
+}
+// later: subscription.cancel()
 
-// Full parameters
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 3. SHOW — display the feedback widget (one result per call)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 PisanoSDK.show(
     viewMode = ViewMode.BOTTOM_SHEET,
     title = Title(text = "We Value Your Feedback", textSize = 18f),
@@ -385,308 +381,162 @@ PisanoSDK.show(
         name = "John Doe",
         email = "john@example.com",
         phoneNumber = "+1234567890",
-        externalId = "CRM-12345"
+        externalId = "CRM-12345",
     ),
-    code = "ANOTHER_SURVEY_CODE",   // optional override
-    dismissOnDrag = false           // optional — swipe dismiss when BOTTOM_SHEET
-)
-
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 3. HEALTH CHECK — verify reachability
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-PisanoSDK.healthCheck(
-    language = "en",
-    pisanoCustomer = PisanoCustomer(externalId = "USER-123"),
-    payload = null,
-    code = null   // use init code; or pass a string to override
-) { isHealthy ->
-    if (isHealthy) PisanoSDK.show()
+    code = null,              // null = init code; or a string to override for this call
+    dismissOnDrag = false,    // true: a drag down closes the bottom sheet
+) { status ->
+    if (status == CloseStatus.SEND_FEEDBACK) Log.d("Pisano", "feedback sent")
 }
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 4. TRACK — track a custom event
+// 4. HEALTH CHECK — would a survey open right now? (nothing is shown)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PisanoSDK.healthCheck(pisanoCustomer = PisanoCustomer(externalId = "USER-123")) { canShow ->
+    if (canShow) showFeedbackButton()
+}
+
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 5. TRACK — send a custom event; a survey it triggers opens on its own
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 PisanoSDK.track(
     event = "purchase_completed",
     payload = hashMapOf("product_id" to "PROD-123"),
     pisanoCustomer = PisanoCustomer(externalId = "USER-456"),
-    languageCode = "en"
-)
+    language = "en",
+) { sent -> Log.d("Pisano", "track sent: $sent") }
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 5. CLEAR — clear SDK local data
+// 6. SETTINGS (optional)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-PisanoSDK.clearAction()
+PisanoSDK.requestTimeout = 15            // seconds, default 30
+PisanoSDK.automaticStoreReview = false   // the app asks for the review prompt on REDIRECTED_TO_STORE
+
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 7. CLEAR — end the session (logout, user / tenant switch)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PisanoSDK.clear()   // closes an open survey; call init again for the next user
 ```
 
-#### Java
-
-```java
-// Init
-PisanoSDKManager manager = new PisanoSDKManager.Builder(context)
-    .setApplicationId("YOUR_APP_ID")
-    .setAccessKey("YOUR_ACCESS_KEY")
-    .setCode("YOUR_CODE")
-    .setApiUrl("https://api.pisano.co")
-    .setFeedbackUrl("https://web.pisano.co/web_feedback")
-    .setDebug(BuildConfig.DEBUG)
-    .build();
-
-PisanoSDK.INSTANCE.init(manager);
-
-// Show
-PisanoSDK.INSTANCE.show(ViewMode.BOTTOM_SHEET, null, null, "en", null, null);
-
-// Clear
-PisanoSDK.INSTANCE.clearAction();
-```
+`init`, `healthCheck`, `show` and `track` return a `PisanoTask`; `task.cancel()` stops a call that has not finished (`false`, or `NONE` for `show`).
 
 ---
 
 ## React Native
 
 **SDK repository:** [github.com/Pisano/feedback-react-native-sdk](https://github.com/Pisano/feedback-react-native-sdk)
-**npm:** [`feedback-react-native-sdk`](https://www.npmjs.com/package/feedback-react-native-sdk) — latest **v0.2.15**
+**npm:** [`feedback-react-native-sdk`](https://www.npmjs.com/package/feedback-react-native-sdk) — **1.0.0** (native Pisano 2.0)
 **Sample app:** [github.com/Pisano/feedback-sample-react-native-app](https://github.com/Pisano/feedback-sample-react-native-app)
 
 ### Requirements
 
 | Dependency | Minimum version |
 |------------|-----------------|
-| Node | 18+ |
-| React Native | 0.79+ |
-| iOS — Xcode | 15+ |
-| iOS — CocoaPods | Required |
-| Android — JDK | 17 |
-| Android — SDK | API 21+ |
+| React Native | 0.82+ (New Architecture only) |
+| React | 19.1+ |
+| iOS | 15.1+, Xcode 16+, CocoaPods |
+| Android | minSdk 21, compileSdk 34+, JDK 17 |
 
 ### Installation
 
-#### npm
-
 ```bash
 npm install feedback-react-native-sdk
-```
-
-#### yarn
-
-```bash
+# or
 yarn add feedback-react-native-sdk
 ```
 
-#### iOS — install native pods
-
-After adding the npm package, install the native CocoaPods dependency:
-
-```bash
-cd ios && pod install && cd ..
-```
-
-If the pod install fails, try updating the repo first:
-
-```bash
-cd ios && pod repo update && pod install && cd ..
-```
-
-#### Android
-
-No extra steps — Gradle resolves the native dependency automatically when you run the app.
-
-#### Android — New Architecture (TurboModule)
-
-The package ships with the **legacy bridge** by default. To opt in to the new React Native architecture / TurboModule:
-
-1. Open `android/gradle.properties`.
-2. Add: `FeedbackReactNativeSdk_newArchEnabled=true`
-3. Follow the React Native new-arch guide (e.g. `./gradlew generateCodegenArtifactsFromSchema`).
-
-When omitted, only the legacy Java module is compiled.
+iOS: run `pod install` in your `ios/` directory. Android: no extra step.
 
 ### Configuration
 
-Create a local config file for credentials (**do not commit this file**):
-
-```bash
-cp pisano.config.example.js pisano.config.js
-```
-
-Fill in `appId`, `accessKey`, `code`, and URLs from the Pisano panel. Add `pisano.config.js` to `.gitignore`.
+Keep credentials out of source control. The sample app reads them from `src/pisano.config.ts` (git-ignored, created from `pisano.config.example.ts`).
 
 ### Usage
 
-```javascript
+```ts
 import {
   feedbackSDKBoot,
-  feedbackSDKShow,
-  feedbackSDKTrack,
+  feedbackSDKCallback,
   feedbackSDKClear,
   feedbackSDKDebugMode,
-  feedbackSDKViewMode
+  feedbackSDKHealthCheck,
+  feedbackSDKOn,
+  feedbackSDKSetAutomaticStoreReview,
+  feedbackSDKSetRequestTimeout,
+  feedbackSDKShow,
+  feedbackSDKTrack,
+  feedbackSDKViewMode,
 } from 'feedback-react-native-sdk';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 0. DEBUG MODE (optional — call before boot)
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 0. Debug logs (optional, before boot)
+feedbackSDKDebugMode(true);
 
-feedbackSDKDebugMode(true);   // enable verbose native logs
+// 1. Boot — once at app startup; resolves a boolean
+const booted = await feedbackSDKBoot({
+  appId: 'YOUR_APP_ID',
+  accessKey: 'YOUR_ACCESS_KEY',
+  code: 'YOUR_CODE',                                // required
+  apiUrl: 'https://api.pisano.co',
+  feedbackUrl: 'https://web.pisano.co/web_feedback',
+  eventUrl: 'https://track.pisano.co/track',        // optional, needed for track
+});
 
+// 2. Events (optional) — returns an unsubscribe function
+const unsubscribe = feedbackSDKOn((event) => {
+  // event.type: 'opened' | 'feedbackSubmitted' | 'redirectedToStore' | 'closed'
+  console.log(event.type, event.closeReason ?? '');
+});
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 1. BOOT — call once at app startup
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 3. Show — resolves once with a feedbackSDKCallback value
+const result = await feedbackSDKShow({
+  viewMode: feedbackSDKViewMode.BottomSheet,
+  title: 'We Value Your Feedback',
+  language: 'en',
+  dismissOnDrag: true,
+  customer: { email: 'user@example.com', externalId: 'USER-123' },
+  payload: { source: 'app' },
+});
+if (result === feedbackSDKCallback.SendFeedback) {
+  // the survey was submitted
+}
 
-feedbackSDKBoot(
-  'YOUR_APP_ID',
-  'YOUR_ACCESS_KEY',
-  'YOUR_CODE',                                     // required — from Pisano panel
-  'https://api.pisano.co',
-  'https://web.pisano.co/web_feedback',
-  '',                                              // eventUrl (optional)
-  (status) => console.log('Boot:', status)
-);
+// 4. Health check — would a survey open right now?
+const canShow = await feedbackSDKHealthCheck({ customer: { externalId: 'USER-123' } });
 
+// 5. Track — resolves true when the server accepted the event
+const sent = await feedbackSDKTrack({ event: 'purchase_completed', payload: { productId: 'PROD-123' } });
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 2. SHOW — display the feedback widget
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 6. Settings (optional)
+feedbackSDKSetRequestTimeout(15);            // seconds, default 30
+feedbackSDKSetAutomaticStoreReview(false);   // the app asks for the review prompt on redirectedToStore
 
-// Minimal — uses boot code
-feedbackSDKShow(
-  feedbackSDKViewMode.Default,                     // viewMode
-  null,                                            // title
-  null,                                            // titleFontSize
-  null,                                            // code (null = use boot code)
-  'en',                                            // language
-  new Map([['email', 'user@example.com']]),         // customer
-  new Map([['source', 'app']]),                     // payload
-  (result) => console.log('Show:', result),
-  false                                            // dismissOnDrag (optional)
-);
-
-// Bottom sheet with drag-to-dismiss
-feedbackSDKShow(
-  feedbackSDKViewMode.BottomSheet,
-  'We Value Your Feedback',
-  16,
-  null,
-  'en',
-  new Map([['externalId', 'USER-123']]),
-  new Map(),
-  (result) => console.log('Show:', result),
-  true                                             // dismissOnDrag
-);
-
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 3. TRACK — track a custom event
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-feedbackSDKTrack(
-  'purchase_completed',
-  new Map([['product_id', 'PROD-123']]),           // payload
-  new Map([['externalId', 'USER-456']]),           // customer
-  'en',                                            // language
-  (status) => console.log('Track:', status)
-);
-
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 4. CLEAR — clear SDK state
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+// 7. Clear — logout / user switch; boot again for the next user
 feedbackSDKClear();
 ```
 
-### API Reference
-
-#### `feedbackSDKDebugMode(enabled: boolean)`
-
-Enable or disable verbose native SDK logs. Call **before** boot.
-
-#### `feedbackSDKBoot(appId, accessKey, code, apiUrl, feedbackUrl, eventUrl?, callback?)`
-
-Initialize the SDK. Call **once** at app startup. Only boot receives credentials and URLs; show/track do not accept them — they always use the values stored from boot.
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `appId` | `string` | Yes | Application ID from Pisano panel |
-| `accessKey` | `string` | Yes | Access Key from Pisano panel |
-| `code` | `string` | Yes | Channel code (e.g. `PSN-xxxxx`) |
-| `apiUrl` | `string` | Yes | API base URL |
-| `feedbackUrl` | `string` | Yes | Feedback widget URL |
-| `eventUrl` | `string` | No | Event/tracking URL |
-| `callback` | `(status: string) => void` | No | Status callback |
-
-#### `feedbackSDKShow(viewMode, title, titleFontSize, code, language, customer, payload, callback, dismissOnDrag?)`
-
-Display the feedback widget. Uses credentials and URLs from boot.
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `viewMode` | `feedbackSDKViewMode` | Yes | `Default` (full screen) or `BottomSheet` |
-| `title` | `string \| null` | No | Custom widget title |
-| `titleFontSize` | `number \| null` | No | Title font size |
-| `code` | `string \| null` | No | Override boot code for this call |
-| `language` | `string \| null` | No | Language code (`en`, `tr`, ...) |
-| `customer` | `Map<string, any>` | No | Customer properties (camelCase keys) |
-| `payload` | `Map<string, string>` | No | Custom key-value payload |
-| `callback` | `(result: string) => void` | Yes | Returns `feedbackSDKCallback` value |
-| `dismissOnDrag` | `boolean` | No | Default `false`. When `true` with `BottomSheet`, swipe-down dismiss |
-
-#### `feedbackSDKTrack(event, payload?, customer?, language?, callback?)`
-
-Track a custom event. Uses credentials and URLs from boot.
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `event` | `string` | Yes | Event name |
-| `payload` | `Map<string, string>` | No | Custom payload |
-| `customer` | `Map<string, string>` | No | Customer properties |
-| `language` | `string` | No | Language code |
-| `callback` | `(status: string) => void` | No | Status callback |
-
-#### `feedbackSDKClear()`
-
-Clears SDK session and cached state for the current user. No parameters.
+Customer keys follow `PisanoCustomer`: `name`, `email`, `phoneNumber`, `externalId`, `customAttributes`. Other spellings (`phone_number`, `external_id`, `custom_attrs`, any case) are mapped; an unknown key is not sent and logs a warning.
 
 ### Enums
 
-**`feedbackSDKViewMode`**
+**`feedbackSDKViewMode`**: `Default` (full screen), `BottomSheet`.
 
-| Value | Description |
-|-------|-------------|
-| `Default` | Full-screen overlay |
-| `BottomSheet` | Bottom sheet |
-
-**`feedbackSDKCallback`** — returned from `show` callback
-
-| Value | Description |
-|-------|-------------|
-| `Closed` | Widget closed by user |
-| `SendFeedback` | Feedback/survey submitted |
-| `Outside` | Dismissed by tapping outside |
-| `Opened` | Widget is visible |
-| `DisplayOnce` | Survey already shown once, won't repeat |
-| `PreventMultipleFeedback` | Multiple feedback prevented for this user |
-| `QuotaExceeded` | Channel quota exceeded |
-| `DisplayRateLimited` | Skipped due to `display_rate` throttling |
-| `SurveyPassive` | Channel is in passive state |
-| `HealthCheckFailed` | SDK initialization / health check failed |
-| `None` | No specific status |
+**`feedbackSDKCallback`** — the `show` result: `SendFeedback`, `Closed`, `None`, `DisplayOnce`, `PreventMultipleFeedback`, `ChannelQuotaExceeded`, `ChannelPassive`, `DisplayRateLimited`. See [Callback / Status values](#callback--status-values).
 
 ### Troubleshooting
 
 | Problem | Solution |
 |---------|----------|
-| **Android:** "Unable to load script" | Run `adb reverse tcp:8081 tcp:8081` and ensure Metro is running (`npx react-native start`) |
-| **iOS:** Build fails after SDK update | `cd ios && pod install`, then clean build folder in Xcode (Cmd+Shift+K) |
-| **iOS:** Pod not found | `cd ios && pod repo update && pod install` |
+| **Android:** "Unable to load script" | Run `adb reverse tcp:8081 tcp:8081` and make sure Metro is running |
+| **iOS:** build fails after an SDK update | `cd ios && pod install`, then clean the build folder in Xcode |
+| `feedbackSDKShow` resolves `None` | Check that `feedbackSDKBoot` resolved `true`; turn on debug mode |
 
 ---
 
@@ -697,39 +547,21 @@ Clears SDK session and cached state for the current user. No parameters.
 
 ### Requirements
 
-- Flutter SDK installed (`flutter --version`)
-- iOS: Xcode + CocoaPods
-- Android: JDK, Android SDK
+- Flutter 3.0+, Dart 2.17+
+- iOS 15.0+, Xcode 16+ (Swift Package Manager or CocoaPods)
+- Android minSdk 21, compileSdk 34+, JDK 17
 
 ### Installation
-
-Add the SDK as a git dependency in `pubspec.yaml`:
 
 ```yaml
 dependencies:
   feedback_flutter_sdk:
     git:
       url: https://github.com/Pisano/feedback-flutter-sdk.git
-      ref: 0.0.17
+      ref: 1.0.0
 ```
 
-Then:
-
-```bash
-flutter pub get
-```
-
-For iOS, install native pods:
-
-```bash
-cd ios
-pod repo update && pod install
-cd ..
-```
-
-For Android, no extra steps.
-
-Credentials should be passed via `--dart-define-from-file=pisano_defines.json` (gitignored). See the sample app for the full setup.
+Then `flutter pub get`. Credentials should be passed with `--dart-define-from-file=pisano_defines.json` (git-ignored); see the sample app.
 
 ### Usage
 
@@ -738,65 +570,44 @@ import 'package:feedback_flutter_sdk/feedback_flutter_sdk.dart';
 
 final feedbackSdk = FeedbackFlutterSdk();
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 1. INIT — call once at app startup
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-await feedbackSdk.init(
+// 1. Init — once at app startup; completes with a bool
+final booted = await feedbackSdk.init(
   'YOUR_APP_ID',
   'YOUR_ACCESS_KEY',
   'https://api.pisano.co',
   'https://web.pisano.co/web_feedback',
-  null,                    // eventUrl (optional)
+  'https://track.pisano.co/track',   // eventUrl, optional (needed for track)
   debugLogging: false,
-  code: 'YOUR_CODE',      // required
+  code: 'YOUR_CODE',                 // required
 );
 
+// 2. Events (optional)
+final subscription = feedbackSdk.events.listen((event) {
+  // event.type: opened, feedbackSubmitted, redirectedToStore, closed
+  print('${event.type} ${event.closeReason ?? ''}');
+});
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 2. SHOW — display the feedback widget
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-// Minimal — uses boot code
-final callback = await feedbackSdk.show(
-  viewMode: ViewMode.bottomSheetMode,
-  language: 'en',
-);
-print('Show: $callback');
-
-// Full parameters
-final callback = await feedbackSdk.show(
+// 3. Show — completes once with a FeedbackCallback
+final result = await feedbackSdk.show(
   viewMode: ViewMode.bottomSheetMode,
   title: 'We Value Your Feedback',
-  titleFontSize: 20,
-  code: 'ANOTHER_SURVEY_CODE',          // optional override
-  language: 'tr',
-  customer: {
-    'name': 'John Doe',
-    'email': 'john@example.com',
-    'phoneNumber': '+905001112233',
-    'externalId': 'CRM-12345',
-  },
-  payload: {'source': 'app', 'screen': 'home'},
-);
-
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 3. TRACK — track a custom event
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-final callback = await feedbackSdk.track(
-  'purchase_completed',
   language: 'en',
-  customer: {'externalId': 'USER-456'},
-  payload: {'product_id': 'PROD-123'},
+  dismissOnDrag: true,
+  customer: const PisanoCustomer(email: 'john@example.com', externalId: 'CRM-12345'),
+  payload: {'source': 'app'},
 );
 
+// 4. Health check — would a survey open right now?
+final canShow = await feedbackSdk.healthCheck();
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 4. CLEAR — clear SDK state
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 5. Track — true when the server accepted the event
+final sent = await feedbackSdk.track('purchase_completed', payload: {'product_id': 'PROD-123'});
 
+// 6. Settings (optional)
+await feedbackSdk.setRequestTimeout(const Duration(seconds: 15)); // default 30 s
+await feedbackSdk.setAutomaticStoreReview(false);
+
+// 7. Clear — logout / user switch; init again for the next user
 await feedbackSdk.clear();
 ```
 
@@ -843,17 +654,17 @@ await feedbackSdk.clear();
 |--------|--------|--------------|
 | **Init / Boot** | **Required** | SDK cannot initialize |
 | **Show** | Optional | Uses init/boot code |
-| **Health check** (iOS, Android) | Optional | Uses init/boot code |
+| **Health check** | Optional | Uses init/boot code |
 | **Track** | N/A | Uses current SDK context |
 
-### SDK versions (current)
+### SDK versions (2.0 release)
 
-| Platform | SDK | Latest version | Package manager |
-|----------|-----|----------------|-----------------|
+| Platform | SDK | Version | Package manager |
+|----------|-----|---------|-----------------|
 | iOS | `PisanoFeedback` | 2.0.0 | SPM / CocoaPods |
-| Android | `co.pisano:feedback` | 1.3.31 | Gradle (Maven Central) |
-| React Native | `feedback-react-native-sdk` | 0.2.15 | npm / yarn |
-| Flutter | `feedback_flutter_sdk` | 0.0.17 | Git dependency (pubspec) |
+| Android | `co.pisano:feedback` | 2.0.0 | Gradle (Maven Central) |
+| React Native | `feedback-react-native-sdk` | 1.0.0 | npm / yarn |
+| Flutter | `feedback_flutter_sdk` | 1.0.0 | Git dependency (pubspec) |
 
 ### Security reminders
 
@@ -861,6 +672,6 @@ await feedbackSdk.clear();
 - Use local config files:
   - iOS: `PisanoSecrets.plist` (gitignored)
   - Android: `local.properties` (gitignored)
-  - React Native: `pisano.config.js` (gitignored)
+  - React Native: `src/pisano.config.ts` (gitignored)
   - Flutter: `pisano_defines.json` (gitignored)
 - Each sample app repo includes an example config file you can copy and fill.
