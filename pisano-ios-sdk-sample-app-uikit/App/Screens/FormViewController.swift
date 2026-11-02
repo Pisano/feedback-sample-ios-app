@@ -23,6 +23,7 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
     private let timeoutControl = UISegmentedControl(items: ["Timeout 30s", "Timeout 5s", "Timeout 60s"])
     private let eventsLabel = UILabel()
     private var events: [String] = []
+    private var showTwiceResults = ["…", "…"]
     private var eventSubscription: PisanoSubscription?
     private let fontControl = UISegmentedControl(items: ["Title", "Body"])
 
@@ -329,9 +330,9 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
         Pisano.healthCheck(language: language) { [weak self] isHealthy in
             guard let self else { return }
             guard isHealthy else {
-                self.statusLabel.text = "Status: healthCheck failed (check network/urls)"
-                let alert = UIAlertController(title: "Health Check Failed",
-                                              message: "SDK could not reach the API. Check your network and API URLs.",
+                self.statusLabel.text = "Status: healthCheck false (not booted, offline or wrong URLs)"
+                let alert = UIAlertController(title: "No Survey to Show",
+                                              message: "healthCheck returned false: the SDK is not booted, is offline, or the API URLs are wrong.",
                                               preferredStyle: .alert)
                 alert.addAction(UIAlertAction(title: "OK", style: .default))
                 self.present(alert, animated: true)
@@ -389,9 +390,14 @@ final class FormViewController: UIViewController, UITextFieldDelegate {
         Pisano.automaticStoreReview = storeReviewControl.selectedSegmentIndex == 0
     }
 
+    /// `clear()` makes the SDK forget the boot settings, so the sample boots
+    /// again; without it the next show ends with `.none`.
     private func didTapClear() {
-        Pisano.clear()
-        statusLabel.text = "Status: cleared"
+        FeedbackManager.shared.clear()
+        statusLabel.text = "Status: cleared, booting again..."
+        FeedbackManager.shared.boot { [weak self] succeeded in
+            self?.statusLabel.text = "Status: cleared, boot again: \(succeeded)"
+        }
     }
 }
 
@@ -418,18 +424,26 @@ extension FormViewController {
         Pisano.requestTimeout = [30, 5, 60][timeoutControl.selectedSegmentIndex]
     }
 
-    /// Two show() calls back to back: the first opens the survey, the second
-    /// ends with .none right away (one survey at a time, as on Android).
+    /// Two show() calls back to back: one opens the survey, the other ends with
+    /// .none (one survey at a time, as on Android). The call whose request comes
+    /// back first wins, so it is not always the first call.
     fileprivate func didTapShowTwice() {
         guard PisanoSDKConfig.isValid else {
             statusLabel.text = "Status: missing config (set Info.plist keys or PisanoSecrets.plist)"
             return
         }
-        performShow()
         let language = PisanoSDKConfig.language.isEmpty ? nil : PisanoSDKConfig.language
-        // The first survey's own result replaces this line when it closes.
-        Pisano.show(mode: selectedMode(), language: language, dismissOnDrag: selectedDismissOnDrag()) { [weak self] second in
-            self?.statusLabel.text = "Status: 2nd show: \(second.description) (1st survey stays open)"
+        events = []
+        eventsLabel.text = "Events: -"
+        showTwiceResults = ["…", "…"]
+        for index in 0..<2 {
+            FeedbackManager.shared.showFlow(mode: selectedMode(),
+                                            language: language,
+                                            dismissOnDrag: selectedDismissOnDrag()) { [weak self] status in
+                guard let self else { return }
+                self.showTwiceResults[index] = status.description
+                self.statusLabel.text = "Status: 1st show: \(self.showTwiceResults[0]) · 2nd show: \(self.showTwiceResults[1])"
+            }
         }
     }
 

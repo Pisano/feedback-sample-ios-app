@@ -26,24 +26,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                PisanoSDKConfig.usesSecretsPlist ? "true" : "false",
                PisanoSDKConfig.missingRequiredKeys.joined(separator: ","))
 
-        if PisanoSDKConfig.isValid {
-            let cfg = PisanoSDKConfig.config
-            Pisano.boot(appId: cfg.appId,
-                        accessKey: cfg.accessKey,
-                        code: cfg.code,
-                        apiUrl: cfg.apiUrl,
-                        feedbackUrl: cfg.feedbackUrl,
-                        eventUrl: cfg.eventUrl.isEmpty ? nil : cfg.eventUrl) { succeeded in
-                os_log("Pisano.boot completed. succeeded=%{public}@",
-                       log: self.log,
-                       type: .info,
-                       succeeded ? "true" : "false")
-            }
-        } else {
-            os_log("Pisano SDK config is missing. Provide credentials via Info.plist keys or PisanoSecrets.plist (do not commit).",
-                   log: log,
-                   type: .error)
-        }
+        FeedbackManager.shared.boot()
         return true
     }
 

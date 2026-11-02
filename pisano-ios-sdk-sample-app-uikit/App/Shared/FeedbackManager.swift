@@ -48,6 +48,32 @@ final class FeedbackManager {
                     payload: payload, code: code, dismissOnDrag: dismissOnDrag, completion: onResult)
     }
     
+    /// Boots the SDK with the configured credentials. `clear()` makes the SDK
+    /// forget them, so the samples call this again after `clear()`.
+    func boot(completion: (@MainActor (Bool) -> Void)? = nil) {
+        guard PisanoSDKConfig.isValid else {
+            os_log("Pisano SDK config is missing. Provide credentials via Info.plist keys or PisanoSecrets.plist (do not commit).",
+                   log: log,
+                   type: .error)
+            completion?(false)
+            return
+        }
+        let cfg = PisanoSDKConfig.config
+        let log = self.log
+        Pisano.boot(appId: cfg.appId,
+                    accessKey: cfg.accessKey,
+                    code: cfg.code,
+                    apiUrl: cfg.apiUrl,
+                    feedbackUrl: cfg.feedbackUrl,
+                    eventUrl: cfg.eventUrl.isEmpty ? nil : cfg.eventUrl) { succeeded in
+            os_log("Pisano.boot completed. succeeded=%{public}@",
+                   log: log,
+                   type: .info,
+                   succeeded ? "true" : "false")
+            completion?(succeeded)
+        }
+    }
+
     func clear() {
         os_log("Pisano.clear called.", log: log, type: .info)
         Pisano.clear()
