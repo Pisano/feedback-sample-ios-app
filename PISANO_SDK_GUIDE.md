@@ -811,7 +811,7 @@ await feedbackSdk.clear();
 
 ## Callback / Status values
 
-`show()` reports one result per call. The names are the same on every platform (2.0: iOS 2.0, Android 2.0, React Native 0.4, Flutter 0.1):
+`show()` reports one result per call. The names are the same on every platform (iOS 2.0, Android 2.0, React Native 1.0, Flutter 1.0):
 
 | Result | iOS (`CloseStatus`) | Android (`CloseStatus`) | React Native (`feedbackSDKCallback`) | Flutter (`FeedbackCallback`) | Description |
 |--------|---------------------|-------------------------|--------------------------------------|------------------------------|-------------|
