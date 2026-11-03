@@ -28,7 +28,6 @@
 		E95F92F328635C44003AFDBB /* AppButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95F92F228635C44003AFDBB /* AppButton.swift */; };
 		E96BFED3282C006B0040B153 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = E96BFED5282C006B0040B153 /* Localizable.strings */; };
 		E96BFEDB282C02490040B153 /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = E96BFEDA282C02490040B153 /* String.swift */; };
-		E986132F282E5DF8005800D8 /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = E986132E282E5DF8005800D8 /* Notification.swift */; };
 		E990A72D282AA80D00056EE9 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E990A72C282AA80D00056EE9 /* Launch Screen.storyboard */; };
 		E990A72F282B850A00056EE9 /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E990A72E282B850A00056EE9 /* Colors.xcassets */; };
 		E9A0C0A0C0A0C0A0C0A0C0A1 /* PisanoSDKConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A0C0A0C0A0C0A0C0A0C0A0 /* PisanoSDKConfig.swift */; };
@@ -88,7 +87,6 @@
 		E96BFED7282C01800040B153 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Base; path = Base.lproj/Info.plist; sourceTree = "<group>"; };
 		E96BFED9282C01820040B153 /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = tr; path = tr.lproj/Info.plist; sourceTree = "<group>"; };
 		E96BFEDA282C02490040B153 /* String.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
-		E986132E282E5DF8005800D8 /* Notification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
 		E990A72C282AA80D00056EE9 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		E990A72E282B850A00056EE9 /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
 		E9A0C0A0C0A0C0A0C0A0C0A0 /* PisanoSDKConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PisanoSDKConfig.swift; sourceTree = "<group>"; };
@@ -195,7 +193,6 @@
 				E93DBE85282BD23900D8C4F6 /* CGFloat.swift */,
 				E93DBE6B282B883E00D8C4F6 /* Color.swift */,
 				E93DBE71282B8DA200D8C4F6 /* Image.swift */,
-				E986132E282E5DF8005800D8 /* Notification.swift */,
 				E96BFEDA282C02490040B153 /* String.swift */,
 				E9DD137C291161AF000545C6 /* Font.swift */,
 				E95F92E92862009F003AFDBB /* View.swift */,
@@ -414,7 +411,6 @@
 				E9CA8C5A2860886100AADA0E /* AppManager.swift in Sources */,
 				E95F92EC28620593003AFDBB /* FeedbackManager.swift in Sources */,
 				E9208E82286DBC6A00E7811E /* Config.swift in Sources */,
-				E986132F282E5DF8005800D8 /* Notification.swift in Sources */,
 				E93DBE6C282B883E00D8C4F6 /* Color.swift in Sources */,
 				E922DED728F71073004302BB /* Dictionary.swift in Sources */,
 				E9208E80286DA67600E7811E /* OnChange.swift in Sources */,
@@ -669,7 +665,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = co.pisano.feedbackTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/pisano-feedback.app/pisano-feedback";
 			};
@@ -694,7 +690,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = co.pisano.feedbackTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/pisano-feedback.app/pisano-feedback";
 			};
@@ -738,7 +734,7 @@
 			repositoryURL = "https://github.com/Pisano/pisano-ios.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.1.0;
+				minimumVersion = 2.0.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

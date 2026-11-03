@@ -30,7 +30,14 @@ struct FormView: View {
                                     icon: Image(systemName: "person.wave.2"),
                                     type: .plain,
                                     text: $viewModel.externalId)
+
+                    CustomTextField(title: "Custom attribute: plan",
+                                    placeholder: "gold",
+                                    icon: Image(systemName: "tag.fill"),
+                                    type: .plain,
+                                    text: $viewModel.plan)
                 }
+
                 
                 CustomTextField(title: .title,
                                 icon: Image(systemName: "pencil"),
@@ -76,7 +83,21 @@ struct FormView: View {
 
                 Text("Dismiss on drag (bottom sheet)")
                 Toggle("Allow swipe-down dismiss", isOn: $viewModel.dismissOnDrag)
+
+                Text("Store review prompt")
+                Toggle("SDK asks for it", isOn: $viewModel.automaticStoreReview)
+                Text("Off: the SDK only sends redirectedToStore and this app asks for the prompt.")
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
                 
+                Text("Request timeout")
+                Picker("Request timeout", selection: $viewModel.requestTimeout) {
+                    Text("30 s").tag(TimeInterval(30))
+                    Text("5 s").tag(TimeInterval(5))
+                    Text("60 s").tag(TimeInterval(60))
+                }
+                .pickerStyle(.segmented)
+
                 Text(.actionStatus)
                 Text(viewModel.sdkCallback.description)
                 Text(viewModel.preflightStatus)
@@ -87,9 +108,18 @@ struct FormView: View {
                     viewModel.feedback()
                 }
                 
+                AppButton(title: "Track event", action: {
+                    viewModel.track()
+                }, backgroundColor: .clear)
+
                 AppButton(title: .clear, action:  {
                     viewModel.clear()
                 }, backgroundColor: .clear)
+
+                Text("Events")
+                Text(viewModel.events.isEmpty ? "-" : viewModel.events.joined(separator: "\n"))
+                    .font(.footnote.monospaced())
+                    .foregroundColor(.secondary)
             }
             .padding()
             .padding([.top, .horizontal])

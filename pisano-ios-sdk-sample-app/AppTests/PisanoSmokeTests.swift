@@ -36,8 +36,8 @@ final class PisanoSmokeTests: XCTestCase {
                     code: code,
                     apiUrl: apiUrl,
                     feedbackUrl: feedbackUrl,
-                    eventUrl: eventUrl.isEmpty ? nil : eventUrl) { status in
-            XCTAssertNotEqual(status, .initFailed)
+                    eventUrl: eventUrl.isEmpty ? nil : eventUrl) { succeeded in
+            XCTAssertTrue(succeeded)
             bootExp.fulfill()
         }
         wait(for: [bootExp], timeout: 30)
@@ -48,6 +48,15 @@ final class PisanoSmokeTests: XCTestCase {
             hcExp.fulfill()
         }
         wait(for: [hcExp], timeout: 30)
+
+        // track reports whether the server accepted the event; it needs an eventUrl.
+        guard !eventUrl.isEmpty else { return }
+        let trackExp = expectation(description: "Pisano.track reports")
+        Pisano.track(event: "sample_smoke_test") { sent in
+            XCTAssertTrue(sent)
+            trackExp.fulfill()
+        }
+        wait(for: [trackExp], timeout: 30)
     }
 }
 

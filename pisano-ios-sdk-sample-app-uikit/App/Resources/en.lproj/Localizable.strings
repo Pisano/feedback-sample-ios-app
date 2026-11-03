@@ -38,3 +38,5 @@
 "default" = "Default";
 "bottom_sheet" = "Bottom Sheet";
 "font" = "Font";
+"show_twice" = "Show twice (one → none)";
+"track_event" = "Track event";
