@@ -78,7 +78,7 @@ class FormViewModel: ObservableObject {
         // SDK completions are delivered on the main thread.
         Pisano.healthCheck(language: language) { isHealthy in
             guard isHealthy else {
-                self.preflightStatus = "HealthCheck: failed (check network/urls)"
+                self.preflightStatus = "HealthCheck: false (no survey to show: not booted, offline or wrong URLs)"
                 return
             }
 
@@ -138,12 +138,17 @@ class FormViewModel: ObservableObject {
         }
     }
 
+    /// `clear()` makes the SDK forget the boot settings, so the sample boots
+    /// again; without it the next show ends with `.none`.
     func clear() {
         sdkCallback = .none
-        preflightStatus = ""
         dismissOnDrag = false
         events = []
         FeedbackManager.shared.clear()
+        preflightStatus = "Cleared, booting again..."
+        FeedbackManager.shared.boot { [weak self] succeeded in
+            self?.preflightStatus = "Cleared, boot again: \(succeeded)"
+        }
     }
 }
 

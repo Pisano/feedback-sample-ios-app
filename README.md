@@ -27,7 +27,8 @@ Both sample projects have the same options on the form screen (UIKit: segmented 
 | Result line | the `show` completion (`CloseStatus`) |
 | Request timeout: **30 s** (default) / 5 s / 60 s | `Pisano.requestTimeout` |
 | **Track event** button, `sent=true/false` | `Pisano.track` (`Bool` completion) |
-| **Show twice** (UIKit): the second call ends with `.none` while the first survey stays open | one survey at a time |
+| **Show twice** (UIKit): one call opens the survey, the other ends with `.none` (the call whose request comes back first wins, not always the first one) | one survey at a time |
+| **Clear**: `Pisano.clear()`, then `boot` again (the SDK forgets the boot settings; without a new `boot` the next show ends with `.none`) | `Pisano.clear()` + `Pisano.boot` |
 
 The calls go through `FeedbackManager.showFlow(…)` → `Pisano.show(…)`. Both apps build in the Swift 6 language mode.
 
